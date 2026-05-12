@@ -1,0 +1,1 @@
+export type StockDataType = 'price-historical' | 'financials' | 'balance-sheet' | 'broker-summary'
