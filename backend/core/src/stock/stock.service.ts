@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { GoogleGenAI } from '@google/genai'
 import { ConfigService } from '@nestjs/config'
 import { getCsv } from '@utils/get-csv'
+import { getStockLatestPriceDate } from '@utils/get-stock-latest-price-date'
 
 @Injectable()
 export class StockService {
@@ -47,7 +48,17 @@ export class StockService {
 			},
 		})
 
-		const systemInstruction = `
+		const systemInstructionNews = `
+			Anda adalah API analisis saham Indonesia.
+
+			Aturan output:
+			- Kembalikan dalam bentuk teks
+			- Jangan gunakan format markdown
+			- Jangan gunakan *text*
+			- Gunakan Bahasa Indonesia untuk seluruh isi teks
+		`
+
+		const systemInstructionAnalysis = `
 			Anda adalah API analisis saham Indonesia.
 
 			Aturan output:
@@ -61,8 +72,8 @@ export class StockService {
 			- Jangan kosongkan field kecuali data benar-benar tidak tersedia
 		`
 
-		const prompt = `
-			Analisis data historis harga, laporan keuangan, dan neraca keuangan berikut.
+		const analysisPrompt = `
+			Analisis data historis harga, broker summary, laporan keuangan, neraca keuangan, dan berita berikut.
 
 			Tugas:
 			- Tentukan tren harga
@@ -74,24 +85,36 @@ export class StockService {
 			- Kesimpulan
 			- Rekomendasi
 
+			Aturan tren harga:
+			- Tentukan berdasarkan pergerakan harga
+			- Jika pergerakan harga cenderung naik maka output "Bullish", jika tidak maka output "Bearish"
+
 			Aturan support & resistance:
-			- tren harga antara "Bullish" | "Bearish"
-			- support harus <= harga terakhir
-			- support harus >= harga terendah
-			- resistance harus >= harga terakhir
-			- resistance harus <= harga tertinggi
-			- maksimal 3 support
-			- maksimal 3 resistance
-			- jarak antar range minimal 3%
-			- gunakan format: "1000 - 1050"
-			- urutkan dari harga terendah ke tertinggi
-			- Kesimpulan dari semua aspek sebelumnya
-			- Rekomendasi antara "Buy" | "Avoid"
+			- Support harus <= harga terakhir
+			- Support harus >= harga terendah
+			- Resistance harus >= harga terakhir
+			- Resistance harus <= harga tertinggi
+			- Maksimal 3 support
+			- Maksimal 3 resistance
+			- Jarak antar range minimal 3%
+			- Gunakan format: "1000 - 1050"
+			- Urutkan dari harga terendah ke tertinggi
+
+			Aturan laporan keuangan:
+			- Jika data tidak tersedia maka output "Data fundamental tidak tersedia saat ini"
+
+			Aturan neraca keuangan:
+			- jika data tidak tersedia maka output ""
+			
+			Aturan Kesimpulan:
+			- Kesimpulan dari semua data yang disebutkan diawal
+			
+			Aturan Rekomendasi:
+			- Tentukan berdasarkan semua data yang disebutkan diawal
+			- Jika kesimpulannya baik maka output "Buy", jika tidak maka output "Avoid"
 
 			Format output:
-			{	
-				"latestPrice": number,
-				"latestDate": "tanggal terakhir",
+			{
 				"trend": "tren",
 				"support": [
 					"1000 - 1050"
@@ -104,51 +127,103 @@ export class StockService {
 				"financials": "ringkasan laporan keuangan",
 				"balanceSheet": "ringkasan neraca keuangan",
 				"summary": "kesimpulan semua aspek sebelumnya",
-				"reccomendation": "rekomendasi buy atau avoid"
+				"recommendation": "rekomendasi buy atau avoid"
 			}
 		`
 
-		const responseAi = await this.ai.models.generateContent({
-			model: this.model,
-			config: {
-				responseMimeType: 'application/json',
-				systemInstruction
-			},
-			contents: [
-				{
-					text: prompt,
-				},
-				{
-					fileData: {
-						displayName: priceHistoricalUploadedFile.displayName,
-						fileUri: priceHistoricalUploadedFile.uri,
-						mimeType: priceHistoricalUploadedFile.mimeType,
-					},
-				},
-				{
-					fileData: {
-						displayName: brokerSummaryUploadedFile.displayName,
-						fileUri: brokerSummaryUploadedFile.uri,
-						mimeType: brokerSummaryUploadedFile.mimeType,
-					},
-				},
-				{
-					fileData: {
-						displayName: financialsUploadedFile.displayName,
-						fileUri: financialsUploadedFile.uri,
-						mimeType: financialsUploadedFile.mimeType,
-					},
-				},
-				{
-					fileData: {
-						displayName: balanceSheetUploadedFile.displayName,
-						fileUri: balanceSheetUploadedFile.uri,
-						mimeType: balanceSheetUploadedFile.mimeType,
-					},
-				},
-			],
+		const today = new Date().toLocaleDateString('id-ID', {
+			day: 'numeric',
+			month: 'long',
+			year: 'numeric'
 		})
 
-		return JSON.parse(responseAi.text!)
+		const newsPrompt = `
+			Cari berita paling mutakhir emiten ${ticker} khusus untuk tanggal hari ini ${today}.
+			Jika tidak ada berita paling mutakhir untuk emiten ${ticker}, maka cari berita sebelumnya.
+			Jangan cari berita emiten lain.
+			Ringkas dalam 1 paragraf.
+		`
+
+		try {
+			const newsResponse = await this.ai.models.generateContent({
+				model: this.model,
+				config: {
+					systemInstruction: systemInstructionNews,
+					temperature: 0.1,
+					tools: [
+						{
+							googleSearch: {},
+						},
+					],
+				},
+				contents: [
+					{
+						text: newsPrompt,
+					},
+				],
+			})
+
+			const news = `
+				Berita:
+				${newsResponse.text}
+			`
+
+			const analysisResponse = await this.ai.models.generateContent({
+				model: this.model,
+				config: {
+					systemInstruction: systemInstructionAnalysis,
+					temperature: 0.1,
+					responseMimeType: 'application/json'
+				},
+				contents: [
+					{
+						fileData: {
+							displayName: priceHistoricalUploadedFile.displayName,
+							fileUri: priceHistoricalUploadedFile.uri,
+							mimeType: priceHistoricalUploadedFile.mimeType,
+						},
+					},
+					{
+						fileData: {
+							displayName: brokerSummaryUploadedFile.displayName,
+							fileUri: brokerSummaryUploadedFile.uri,
+							mimeType: brokerSummaryUploadedFile.mimeType,
+						},
+					},
+					{
+						fileData: {
+							displayName: financialsUploadedFile.displayName,
+							fileUri: financialsUploadedFile.uri,
+							mimeType: financialsUploadedFile.mimeType,
+						},
+					},
+					{
+						fileData: {
+							displayName: balanceSheetUploadedFile.displayName,
+							fileUri: balanceSheetUploadedFile.uri,
+							mimeType: balanceSheetUploadedFile.mimeType,
+						},
+					},
+					{
+						text: news
+					},
+					{
+						text: analysisPrompt,
+					},
+				],
+			})
+
+			const stockLatestPriceDate = await getStockLatestPriceDate(priceHistoricalFilePath)
+
+			const data = {
+				...stockLatestPriceDate,
+				...JSON.parse(analysisResponse.text!.trim().replace('`', '').replace('json', '').replace('\n', '')),
+				news: newsResponse.text
+			}
+
+			return data
+		} catch (error) {
+			throw error
+		}
 	}
 }
