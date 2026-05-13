@@ -28,6 +28,9 @@
       "@types": [
         "./src/common/types/index.ts"
       ],
+      "@errors/*": [
+        "./src/common/errors/*"
+      ],
     }
   }
 }
