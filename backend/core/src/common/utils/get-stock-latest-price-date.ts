@@ -1,10 +1,6 @@
+import { StockLatestPriceDate } from '@types'
 import csvParser from 'csv-parser'
 import fs from 'fs'
-
-export type StockLatestPriceDate = {
-  latestDate: string
-  latestPrice: number
-}
 
 export const getStockLatestPriceDate = (filePath: string): Promise<StockLatestPriceDate> => {
   return new Promise((resolve, reject) => {
