@@ -161,9 +161,13 @@ export default function Home() {
         <div className="space-y-4 transition-opacity duration-300">
           <div className="rounded-2xl bg-slate-900 border border-slate-800 p-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">
-                {ticker}
-              </h2>
+              <div className='mb-3'>
+                <h2 className="text-2xl font-semibold">
+                  {ticker}
+                </h2>
+
+                <h2 className='text-slate-300 text-xs'>{data?.name}</h2>
+              </div>
 
               <span className={`text-lg px-4 py-2 rounded-full ${data?.recommendation === 'Buy' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
                 {data?.recommendation}

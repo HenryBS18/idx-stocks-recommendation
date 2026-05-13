@@ -3,6 +3,7 @@ export type Status = "idle" | "loading" | "done" | "error"
 export type AnalyzeResponse = {
   latestPrice: number
   latestDate: string
+  name: string
   trend: string
   support: string[]
   resistance: string[]
