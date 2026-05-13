@@ -1,4 +1,4 @@
-import { Controller, Get, Param } from '@nestjs/common'
+import { Controller, Get, InternalServerErrorException, Param } from '@nestjs/common'
 import { StockService } from './stock.service'
 
 @Controller('stock')
@@ -7,6 +7,14 @@ export class StockController {
 
 	@Get(':ticker')
 	async test(@Param('ticker') ticker: string) {
-		return await this.stockService.analyze(ticker)
+		try {
+			return await this.stockService.analyze(ticker)
+		} catch (error) {
+			if (error instanceof Error) {
+				throw new InternalServerErrorException({
+					message: error.message
+				})
+			}
+		}
 	}
 }
