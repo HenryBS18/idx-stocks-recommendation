@@ -1,5 +1,5 @@
 from routes.api import api
-from services.stock import get_price_historical, get_financials, get_balance_sheet, get_broker_summary
+from services.stock import get_price_historical, get_financials, get_balance_sheet, get_broker_summary, get_name
 from flask import  send_file
 
 @api.get('/stock/<ticker>/price-historical')
@@ -45,3 +45,14 @@ def get_broker_summary_route(ticker: str):
 		download_name=filename,
 		mimetype='text/csv'
 	)
+
+@api.get('/stock/<ticker>/name')
+def get_name_route(ticker: str):
+	name = get_name(ticker)
+
+	if name != None:
+		return {
+			'name': name
+		}
+	
+	return {'message': f'{ticker} not found'}, 404

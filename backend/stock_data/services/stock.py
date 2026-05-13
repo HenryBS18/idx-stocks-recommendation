@@ -193,3 +193,16 @@ def get_broker_summary(ticker: str) -> tuple[str, str]:
 			])
 
 	return file_path, filename
+
+def get_name(ticker: str) -> str:
+	url = os.getenv('IDX_OWNERSHIP_API_URL')
+
+	res = requests.get(f'{url}/stock/{ticker}/name')
+	print(res.json())
+
+	if not res.ok:
+		return None
+	
+	name = res.json()['name']
+
+	return name
