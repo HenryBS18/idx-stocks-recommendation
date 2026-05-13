@@ -3,18 +3,27 @@ import { GoogleGenAI } from '@google/genai'
 import { ConfigService } from '@nestjs/config'
 import { getCsv } from '@utils/get-csv'
 import { getStockLatestPriceDate } from '@utils/get-stock-latest-price-date'
+import { AnalysisResult } from '@types'
+import { NotFoundError } from '@errors/not-found-error'
 
 @Injectable()
 export class StockService {
 	private ai: GoogleGenAI
 	private model: string
+	private stockDataBaseApiUrl: string
 
 	constructor(private configService: ConfigService) {
 		this.ai = new GoogleGenAI({ apiKey: this.configService.get<string>('GEMINI_API_KEY') })
 		this.model = this.configService.getOrThrow<string>('AI_MODEL')
+		this.stockDataBaseApiUrl = this.configService.getOrThrow<string>('STOCK_DATA_BASE_API_URL')
 	}
 
-	async analyze(ticker: string) {
+	async analyze(ticker: string): Promise<AnalysisResult> {
+		const stockNameResponse = await fetch(`${this.stockDataBaseApiUrl}/stock/${ticker}/name`)
+		const data = await stockNameResponse.json()
+
+		if (!stockNameResponse.ok) throw new NotFoundError(data.message)
+
 		const priceHistoricalFilePath = await getCsv(ticker, 'price-historical')
 		const brokerSummaryFilePath = await getCsv(ticker, 'broker-summary')
 		const financialsFilePath = await getCsv(ticker, 'financials')
@@ -215,13 +224,12 @@ export class StockService {
 
 			const stockLatestPriceDate = await getStockLatestPriceDate(priceHistoricalFilePath)
 
-			const data = {
+			return {
 				...stockLatestPriceDate,
+				name: data.name,
 				...JSON.parse(analysisResponse.text!.trim().replace('`', '').replace('json', '').replace('\n', '')),
 				news: newsResponse.text
 			}
-
-			return data
 		} catch (error) {
 			throw error
 		}
