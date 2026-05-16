@@ -1,3 +1,5 @@
+import { ContentListUnion, GenerateContentConfig } from '@google/genai'
+
 export type StockDataType = 'price-historical' | 'financials' | 'balance-sheet' | 'broker-summary'
 
 export type StockLatestPriceDate = {
@@ -19,4 +21,16 @@ export type AnalysisResult = {
   news: string
   summary: string
   recommendation: string
+}
+
+export type GenerateContentParams = {
+  contents: ContentListUnion
+  config?: GenerateContentConfig
+}
+
+export type GetAnalysisParams = {
+  technical: string
+  broker: string
+  fundamental: string
+  news: string
 }
