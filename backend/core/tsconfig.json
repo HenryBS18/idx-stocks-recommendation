@@ -31,6 +31,9 @@
       "@errors/*": [
         "./src/common/errors/*"
       ],
+      "@constants/*": [
+        "./src/common/constants/*"
+      ],
     }
   }
 }
