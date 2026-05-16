@@ -1,8 +1,11 @@
 import { StockLatestPriceDate } from '@types'
 import csvParser from 'csv-parser'
 import fs from 'fs'
+import { getCsv } from './get-csv'
 
-export const getStockLatestPriceDate = (filePath: string): Promise<StockLatestPriceDate> => {
+export const getStockLatestPriceDate = async (ticker: string): Promise<StockLatestPriceDate> => {
+  const filePath = await getCsv(ticker, 'price-historical')
+
   return new Promise((resolve, reject) => {
     const stream = fs.createReadStream(filePath).pipe(csvParser())
 
