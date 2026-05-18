@@ -13,7 +13,6 @@ import { TechnicalService } from './services/technical.service'
 
 @Injectable()
 export class StockService {
-	private readonly logger: Logger
 	private readonly stockDataBaseApiUrl: string
 	private readonly cacheEnabled: boolean
 
@@ -28,7 +27,6 @@ export class StockService {
 		private readonly summaryService: SummaryService,
 
 	) {
-		this.logger = new Logger(StockService.name)
 		this.stockDataBaseApiUrl = this.configService.getOrThrow<string>('STOCK_DATA_BASE_API_URL')
 		this.cacheEnabled = this.configService.getOrThrow<string>('CACHE_ENABLED') === 'true'
 	}
@@ -73,7 +71,7 @@ export class StockService {
 
 			return returnData
 		} catch (error) {
-			if (error instanceof Error) this.logger.error(error.message, error.stack)
+			if (error instanceof Error) Logger.error(error.message, `${StockService.name}-${this.analyze.name}`)
 			throw error
 		}
 	}
