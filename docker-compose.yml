@@ -1,0 +1,27 @@
+services:
+  core-api:
+    container_name: core-api
+    build: ./backend/core
+    restart: unless-stopped
+    env_file:
+      - ./backend/core/.env.prod
+    ports:
+      - "4000:4000"
+    depends_on:
+      - stock-data-api
+  stock-data-api:
+    container_name: stock-data-api
+    build: ./backend/stock_data
+    restart: unless-stopped
+    env_file:
+      - ./backend/stock_data/.env.prod
+  app:
+    container_name: app
+    build: ./frontend
+    restart: unless-stopped
+    env_file:
+      - ./frontend/.env.prod
+    ports:
+      - "3000:3000"
+    depends_on:
+      - core-api

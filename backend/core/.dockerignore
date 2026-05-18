@@ -1,0 +1,10 @@
+dist
+node_modules
+test
+README.md
+tmp
+.prettierrc
+eslint.config.mjs
+nest-cli.json
+.gitignore
+.env
