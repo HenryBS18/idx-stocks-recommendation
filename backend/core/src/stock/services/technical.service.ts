@@ -1,12 +1,14 @@
 import { Injectable } from '@nestjs/common'
+import { TechnicalAnalysis } from '@types'
 import { getCsv } from '@utils/get-csv'
+import { parseJsonStringToObject } from '@utils/parse-json-string-to-object'
 import { AiService } from './ai.service'
 
 @Injectable()
 export class TechnicalService {
 	constructor(private readonly aiService: AiService) { }
 
-	async getTechnical(ticker: string): Promise<string> {
+	async getTechnical(ticker: string): Promise<TechnicalAnalysis> {
 		const prompt = `
 			Analisis data historis harga berikut.
 
@@ -67,6 +69,6 @@ export class TechnicalService {
 			],
 		})
 
-		return response.text!
+		return parseJsonStringToObject<TechnicalAnalysis>(response.text!)
 	}
 }

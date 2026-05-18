@@ -1,11 +1,13 @@
 import { Injectable } from '@nestjs/common'
+import { NewsAnalysis } from '@types'
+import { parseJsonStringToObject } from '@utils/parse-json-string-to-object'
 import { AiService } from './ai.service'
 
 @Injectable()
 export class NewsService {
   constructor(private readonly aiService: AiService) { }
 
-  async getNews(ticker: string): Promise<string> {
+  async getNews(ticker: string): Promise<NewsAnalysis> {
     const today = new Date().toLocaleDateString('id-ID', {
       day: 'numeric',
       month: 'long',
@@ -43,6 +45,6 @@ export class NewsService {
       ],
     })
 
-    return response.text!
+    return parseJsonStringToObject<NewsAnalysis>(response.text!)
   }
 }

@@ -1,12 +1,14 @@
 import { Injectable } from '@nestjs/common'
+import { BrokerAnalysis } from '@types'
 import { getCsv } from '@utils/get-csv'
+import { parseJsonStringToObject } from '@utils/parse-json-string-to-object'
 import { AiService } from './ai.service'
 
 @Injectable()
 export class BrokerService {
   constructor(private readonly aiService: AiService) { }
 
-  async getBroker(ticker: string): Promise<string> {
+  async getBroker(ticker: string): Promise<BrokerAnalysis> {
     const prompt = `
       Analisis data broker summary berikut.
 			
@@ -43,6 +45,6 @@ export class BrokerService {
       ],
     })
 
-    return response.text!
+    return parseJsonStringToObject<BrokerAnalysis>(response.text!)
   }
 }

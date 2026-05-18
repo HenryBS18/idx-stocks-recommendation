@@ -7,30 +7,43 @@ export type StockLatestPriceDate = {
   latestPrice: number
 }
 
-export type AnalysisResult = {
-  latestDate: string
-  latestPrice: number
-  name: string
-  trend: string
-  support: string[]
-  resistance: string[]
-  technical: string
-  brokerSummary: string
-  financials: string
-  balanceSheet: string
-  news: string
-  summary: string
-  recommendation: string
-}
-
 export type GenerateContentParams = {
   contents: ContentListUnion
   config?: GenerateContentConfig
 }
 
-export type GetAnalysisParams = {
-  technical: string
-  broker: string
-  fundamental: string
+export type BrokerAnalysis = {
+  brokerSummary: string
+}
+
+export type FundamentalAnalysis = {
+  financials: string
+  balanceSheet: string
+}
+
+export type NewsAnalysis = {
   news: string
+}
+
+export type TechnicalAnalysis = {
+  trend: string
+  support: string[]
+  resistance: string[]
+  technical: string
+}
+
+export type SummaryAnalysis = {
+  summary: string
+  recommendation: string
+}
+
+export type GetSummaryParams = {
+  technical: TechnicalAnalysis
+  broker: BrokerAnalysis
+  fundamental: FundamentalAnalysis
+  news: NewsAnalysis
+}
+
+export type AnalysisResult = StockLatestPriceDate & BrokerAnalysis & FundamentalAnalysis & NewsAnalysis & TechnicalAnalysis & SummaryAnalysis & {
+  name: string
 }

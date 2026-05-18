@@ -5,11 +5,10 @@ import { Inject, Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { AnalysisResult } from '@types'
 import { getStockLatestPriceDate } from '@utils/get-stock-latest-price-date'
-import { parseJsonStringToObject } from '@utils/parse-json-string-to-object'
-import { AnalysisService } from './services/analysis.service'
 import { BrokerService } from './services/broker.service'
 import { FundamentalService } from './services/fundamental.service'
 import { NewsService } from './services/news.service'
+import { SummaryService } from './services/summary.service'
 import { TechnicalService } from './services/technical.service'
 
 @Injectable()
@@ -26,7 +25,7 @@ export class StockService {
 		private readonly brokerService: BrokerService,
 		private readonly fundamentalService: FundamentalService,
 		private readonly newsService: NewsService,
-		private readonly analysisService: AnalysisService,
+		private readonly summaryService: SummaryService,
 
 	) {
 		this.logger = new Logger(StockService.name)
@@ -58,16 +57,16 @@ export class StockService {
 				this.newsService.getNews(ticker)
 			])
 
-			const analysis = await this.analysisService.getAnalysis({ technical, broker, fundamental, news })
+			const summary = await this.summaryService.getSummary({ technical, broker, fundamental, news })
 
 			const returnData: AnalysisResult = {
 				...stockLatestPriceDate,
 				name: data.name,
-				...parseJsonStringToObject(technical),
-				...parseJsonStringToObject(broker),
-				...parseJsonStringToObject(fundamental),
-				...parseJsonStringToObject(news),
-				...parseJsonStringToObject(analysis),
+				...technical,
+				...broker,
+				...fundamental,
+				...news,
+				...summary,
 			}
 
 			if (this.cacheEnabled) await this.cacheManager.set(cacheKey, returnData, CACHE_TTL)

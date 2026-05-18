@@ -1,12 +1,13 @@
 import { Injectable } from '@nestjs/common'
-import { GetAnalysisParams } from '@types'
+import { GetSummaryParams, SummaryAnalysis } from '@types'
+import { parseJsonStringToObject } from '@utils/parse-json-string-to-object'
 import { AiService } from './ai.service'
 
 @Injectable()
-export class AnalysisService {
+export class SummaryService {
   constructor(private readonly aiService: AiService) { }
 
-  async getAnalysis({ technical, broker, fundamental, news }: GetAnalysisParams): Promise<string> {
+  async getSummary({ technical, broker, fundamental, news }: GetSummaryParams): Promise<SummaryAnalysis> {
     const prompt = `
 			Analisis hasil ringkasan teknikal, broker summary, laporan keuangan, neraca keuangan, dan berita berikut.
 
@@ -31,16 +32,16 @@ export class AnalysisService {
     const response = await this.aiService.generateContent({
       contents: [
         {
-          text: technical
+          text: JSON.stringify(technical)
         },
         {
-          text: broker
+          text: JSON.stringify(broker)
         },
         {
-          text: fundamental
+          text: JSON.stringify(fundamental)
         },
         {
-          text: news
+          text: JSON.stringify(news)
         },
         {
           text: prompt,
@@ -48,6 +49,6 @@ export class AnalysisService {
       ],
     })
 
-    return response.text!
+    return parseJsonStringToObject<SummaryAnalysis>(response.text!)
   }
 }
