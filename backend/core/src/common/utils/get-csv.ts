@@ -1,7 +1,7 @@
-import { join } from 'path'
-import { writeFile, mkdir } from 'fs/promises'
-import { existsSync } from 'fs'
 import { StockDataType } from '@types'
+import { existsSync } from 'fs'
+import { mkdir, writeFile } from 'fs/promises'
+import { join } from 'path'
 
 export const getCsv = async (ticker: string, stockDataType: StockDataType): Promise<string> => {
   const tmpDir = join(process.cwd(), 'tmp')
