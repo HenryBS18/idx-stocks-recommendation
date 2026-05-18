@@ -29,11 +29,7 @@ export class AiService {
     } catch (error) {
       let errorMessage = ''
 
-      if (error instanceof Error) {
-        errorMessage = JSON.parse(error.message).message as string
-
-        if (errorMessage.toLowerCase().includes('high demand')) errorMessage = 'AI model is currently unavailable'
-      }
+      if (error instanceof Error && error.message.toLowerCase().includes('high demand')) errorMessage = 'AI model is currently unavailable'
 
       throw new Error(errorMessage)
     }
