@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { NewsAnalysis } from '@types'
-import { parseJsonStringToObject } from '@utils/parse-json-string-to-object'
+import { parseJson } from '@utils/parse-json'
 import { AiService } from './ai.service'
 
 @Injectable()
@@ -45,6 +45,6 @@ export class NewsService {
       ],
     })
 
-    return parseJsonStringToObject<NewsAnalysis>(response.text!)
+    return parseJson<NewsAnalysis>(response.text!)
   }
 }

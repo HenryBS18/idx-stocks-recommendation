@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { GetSummaryParams, SummaryAnalysis } from '@types'
-import { parseJsonStringToObject } from '@utils/parse-json-string-to-object'
+import { parseJson } from '@utils/parse-json'
 import { AiService } from './ai.service'
 
 @Injectable()
@@ -49,6 +49,6 @@ export class SummaryService {
       ],
     })
 
-    return parseJsonStringToObject<SummaryAnalysis>(response.text!)
+    return parseJson<SummaryAnalysis>(response.text!)
   }
 }

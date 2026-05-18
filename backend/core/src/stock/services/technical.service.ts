@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { TechnicalAnalysis } from '@types'
 import { getCsv } from '@utils/get-csv'
-import { parseJsonStringToObject } from '@utils/parse-json-string-to-object'
+import { parseJson } from '@utils/parse-json'
 import { AiService } from './ai.service'
 
 @Injectable()
@@ -69,6 +69,6 @@ export class TechnicalService {
 			],
 		})
 
-		return parseJsonStringToObject<TechnicalAnalysis>(response.text!)
+		return parseJson<TechnicalAnalysis>(response.text!)
 	}
 }

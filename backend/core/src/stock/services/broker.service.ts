@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { BrokerAnalysis } from '@types'
 import { getCsv } from '@utils/get-csv'
-import { parseJsonStringToObject } from '@utils/parse-json-string-to-object'
+import { parseJson } from '@utils/parse-json'
 import { AiService } from './ai.service'
 
 @Injectable()
@@ -45,6 +45,6 @@ export class BrokerService {
       ],
     })
 
-    return parseJsonStringToObject<BrokerAnalysis>(response.text!)
+    return parseJson<BrokerAnalysis>(response.text!)
   }
 }
