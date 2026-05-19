@@ -12,7 +12,12 @@ import { StockModule } from './stock/stock.module'
       isGlobal: true,
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => {
-        const redisUrl = configService.get<string>('REDIS_URL')
+        const redisHost = configService.get<string>('REDIS_HOST')
+        const redisPort = configService.get<string>('REDIS_PORT')
+        const redisUser = configService.get<string>('REDIS_USER')
+        const redisPassword = configService.get<string>('REDIS_PASSWORD')
+
+        const redisUrl = `redis://${redisUser}:${redisPassword}@${redisHost}:${redisPort}`
         const redis = new KeyvRedis(redisUrl)
 
         return {
@@ -28,7 +33,12 @@ export class AppModule implements OnModuleInit {
   constructor(private readonly configService: ConfigService) { }
 
   async onModuleInit() {
-    const redisUrl = this.configService.get<string>('REDIS_URL')
+    const redisHost = this.configService.get<string>('REDIS_HOST')
+    const redisPort = this.configService.get<string>('REDIS_PORT')
+    const redisUser = this.configService.get<string>('REDIS_USER')
+    const redisPassword = this.configService.get<string>('REDIS_PASSWORD')
+
+    const redisUrl = `redis://${redisUser}:${redisPassword}@${redisHost}:${redisPort}`
     const redis = new KeyvRedis(redisUrl)
 
     redis.on('connect', () => {
