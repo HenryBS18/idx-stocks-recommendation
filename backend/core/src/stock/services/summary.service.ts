@@ -2,7 +2,7 @@ import { CACHE_TTL } from '@app/constants'
 import { GetSummaryParams, SummaryAnalysis } from '@app/types'
 import { parseJson } from '@app/utils'
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager'
-import { Inject, Injectable } from '@nestjs/common'
+import { Inject, Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { AiService } from './ai.service'
 
@@ -20,6 +20,8 @@ export class SummaryService {
   }
 
   async getSummary({ ticker, technical, broker, fundamental, news }: GetSummaryParams): Promise<SummaryAnalysis> {
+    Logger.debug('Hit', this.getSummary.name)
+
     const cacheKey = `${ticker}-summary`
 
     if (this.cacheEnabled) {

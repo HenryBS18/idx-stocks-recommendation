@@ -1,9 +1,10 @@
 import { CACHE_TTL } from '@app/constants'
 import { TechnicalAnalysis } from '@app/types'
-import { getCsv, parseJson } from '@app/utils'
+import { getCsv, getStockLatestPriceDate, parseJson } from '@app/utils'
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager'
-import { Inject, Injectable } from '@nestjs/common'
+import { Inject, Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
+import { unlink } from 'fs/promises'
 import { AiService } from './ai.service'
 
 @Injectable()
@@ -20,6 +21,8 @@ export class TechnicalService {
 	}
 
 	async getTechnical(ticker: string): Promise<TechnicalAnalysis> {
+		Logger.debug('Hit', this.getTechnical.name)
+
 		const cacheKey = `${ticker}-technical`
 
 		if (this.cacheEnabled) {
@@ -65,32 +68,42 @@ export class TechnicalService {
 
 		const priceHistoricalFilePath = await getCsv(ticker, 'price-historical')
 
-		const priceHistoricalUploadedFile = await this.aiService.upload({
-			file: priceHistoricalFilePath,
-			config: {
-				mimeType: 'text/csv',
-			},
-		})
-
-		const response = await this.aiService.generateContent({
-			contents: [
-				{
-					fileData: {
-						displayName: priceHistoricalUploadedFile.displayName,
-						fileUri: priceHistoricalUploadedFile.uri,
-						mimeType: priceHistoricalUploadedFile.mimeType,
+		try {
+			const [stockLatestPriceDate, priceHistoricalUploadedFile] = await Promise.all([
+				getStockLatestPriceDate(priceHistoricalFilePath),
+				this.aiService.upload({
+					file: priceHistoricalFilePath,
+					config: {
+						mimeType: 'text/csv',
 					},
-				},
-				{
-					text: prompt,
-				},
-			],
-		})
+				})
+			])
 
-		const technicalAnalysis = parseJson<TechnicalAnalysis>(response.text!)
+			const response = await this.aiService.generateContent({
+				contents: [
+					{
+						fileData: {
+							displayName: priceHistoricalUploadedFile.displayName,
+							fileUri: priceHistoricalUploadedFile.uri,
+							mimeType: priceHistoricalUploadedFile.mimeType,
+						},
+					},
+					{
+						text: prompt,
+					},
+				],
+			})
 
-		if (this.cacheEnabled) await this.cacheManager.set(cacheKey, technicalAnalysis, CACHE_TTL)
+			const technicalAnalysis = parseJson<TechnicalAnalysis>(response.text!)
 
-		return technicalAnalysis
+			if (this.cacheEnabled) await this.cacheManager.set(cacheKey, technicalAnalysis, CACHE_TTL)
+
+			return {
+				...stockLatestPriceDate,
+				...technicalAnalysis
+			}
+		} finally {
+			await unlink(priceHistoricalFilePath)
+		}
 	}
 }

@@ -3,8 +3,9 @@ import { CACHE_TTL } from '@app/constants'
 import { BrokerAnalysis } from '@app/types'
 import { getCsv, parseJson } from '@app/utils'
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager'
-import { Inject, Injectable } from '@nestjs/common'
+import { Inject, Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
+import { unlink } from 'fs/promises'
 import { AiService } from './ai.service'
 
 @Injectable()
@@ -21,6 +22,8 @@ export class BrokerService {
   }
 
   async getBroker(ticker: string): Promise<BrokerAnalysis> {
+    Logger.debug('Hit', this.getBroker.name)
+
     const cacheKey = `${ticker}-broker`
 
     if (this.cacheEnabled) {
@@ -42,32 +45,36 @@ export class BrokerService {
 
     const brokerSummaryFilePath = await getCsv(ticker, 'broker-summary')
 
-    const brokerSummaryUploadedFile = await this.aiService.upload({
-      file: brokerSummaryFilePath,
-      config: {
-        mimeType: 'text/csv',
-      },
-    })
+    try {
+      const brokerSummaryUploadedFile = await this.aiService.upload({
+        file: brokerSummaryFilePath,
+        config: {
+          mimeType: 'text/csv',
+        },
+      })
 
-    const response = await this.aiService.generateContent({
-      contents: [
-        {
-          fileData: {
-            displayName: brokerSummaryUploadedFile.displayName,
-            fileUri: brokerSummaryUploadedFile.uri,
-            mimeType: brokerSummaryUploadedFile.mimeType,
+      const response = await this.aiService.generateContent({
+        contents: [
+          {
+            fileData: {
+              displayName: brokerSummaryUploadedFile.displayName,
+              fileUri: brokerSummaryUploadedFile.uri,
+              mimeType: brokerSummaryUploadedFile.mimeType,
+            },
           },
-        },
-        {
-          text: prompt,
-        },
-      ],
-    })
+          {
+            text: prompt,
+          },
+        ],
+      })
 
-    const brokerAnalysis = parseJson<BrokerAnalysis>(response.text!)
+      const brokerAnalysis = parseJson<BrokerAnalysis>(response.text!)
 
-    if (this.cacheEnabled) await this.cacheManager.set(cacheKey, brokerAnalysis, CACHE_TTL)
+      if (this.cacheEnabled) await this.cacheManager.set(cacheKey, brokerAnalysis, CACHE_TTL)
 
-    return brokerAnalysis
+      return brokerAnalysis
+    } finally {
+      await unlink(brokerSummaryFilePath)
+    }
   }
 }

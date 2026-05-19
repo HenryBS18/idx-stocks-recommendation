@@ -1,7 +1,6 @@
 import { CACHE_TTL } from '@app/constants'
 import { NotFoundError } from '@app/errors'
 import { AnalysisResult } from '@app/types'
-import { getStockLatestPriceDate } from '@app/utils'
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager'
 import { Inject, Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
@@ -32,6 +31,8 @@ export class StockService {
 	}
 
 	async analyze(ticker: string): Promise<AnalysisResult> {
+		Logger.debug('Hit', this.analyze.name)
+
 		try {
 			ticker = ticker.toUpperCase()
 
@@ -47,8 +48,7 @@ export class StockService {
 
 			if (!stockNameResponse.ok) throw new NotFoundError(data.message)
 
-			const [stockLatestPriceDate, technical, broker, fundamental, news] = await Promise.all([
-				getStockLatestPriceDate(ticker),
+			const [technical, broker, fundamental, news] = await Promise.all([
 				this.technicalService.getTechnical(ticker),
 				this.brokerService.getBroker(ticker),
 				this.fundamentalService.getFundamental(ticker),
@@ -60,7 +60,6 @@ export class StockService {
 			const returnData: AnalysisResult = {
 				ticker,
 				name: data.name,
-				...stockLatestPriceDate,
 				...technical,
 				...broker,
 				...fundamental,

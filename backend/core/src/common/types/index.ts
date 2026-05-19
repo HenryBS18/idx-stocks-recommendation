@@ -25,7 +25,7 @@ export type NewsAnalysis = {
   news: string
 }
 
-export type TechnicalAnalysis = {
+export type TechnicalAnalysis = StockLatestPriceDate & {
   trend: string
   support: string[]
   resistance: string[]

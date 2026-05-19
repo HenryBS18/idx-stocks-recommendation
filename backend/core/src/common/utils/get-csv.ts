@@ -7,7 +7,8 @@ export const getCsv = async (ticker: string, stockDataType: StockDataType): Prom
   const tmpDir = join(process.cwd(), 'tmp')
   await mkdir(tmpDir, { recursive: true })
 
-  const filePath = join(tmpDir, `${ticker}_${stockDataType}.csv`)
+  const id = crypto.randomUUID()
+  const filePath = join(tmpDir, `${ticker}_${stockDataType}_${id}.csv`)
 
   if (!existsSync(filePath)) {
     const stockDataApiBaseUrl = process.env.STOCK_DATA_API_URL

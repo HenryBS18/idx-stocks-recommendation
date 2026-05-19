@@ -2,8 +2,9 @@ import { CACHE_TTL } from '@app/constants'
 import { FundamentalAnalysis } from '@app/types'
 import { getCsv, parseJson } from '@app/utils'
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager'
-import { Inject, Injectable } from '@nestjs/common'
+import { Inject, Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
+import { unlink } from 'fs/promises'
 import { AiService } from './ai.service'
 
 @Injectable()
@@ -20,6 +21,8 @@ export class FundamentalService {
   }
 
   async getFundamental(ticker: string): Promise<FundamentalAnalysis> {
+    Logger.debug('Hit', this.getFundamental.name)
+
     const cacheKey = `${ticker}-fundamental`
 
     if (this.cacheEnabled) {
@@ -52,47 +55,54 @@ export class FundamentalService {
       getCsv(ticker, 'balance-sheet')
     ])
 
-    const [financialsUploadedFile, balanceSheetUploadedFile] = await Promise.all([
-      this.aiService.upload({
-        file: financialsFilePath,
-        config: {
-          mimeType: 'text/csv',
-        },
-      }),
-      this.aiService.upload({
-        file: balanceSheetFilePath,
-        config: {
-          mimeType: 'text/csv',
-        },
+    try {
+      const [financialsUploadedFile, balanceSheetUploadedFile] = await Promise.all([
+        this.aiService.upload({
+          file: financialsFilePath,
+          config: {
+            mimeType: 'text/csv',
+          },
+        }),
+        this.aiService.upload({
+          file: balanceSheetFilePath,
+          config: {
+            mimeType: 'text/csv',
+          },
+        })
+      ])
+
+      const response = await this.aiService.generateContent({
+        contents: [
+          {
+            fileData: {
+              displayName: financialsUploadedFile.displayName,
+              fileUri: financialsUploadedFile.uri,
+              mimeType: financialsUploadedFile.mimeType,
+            },
+          },
+          {
+            fileData: {
+              displayName: balanceSheetUploadedFile.displayName,
+              fileUri: balanceSheetUploadedFile.uri,
+              mimeType: balanceSheetUploadedFile.mimeType,
+            },
+          },
+          {
+            text: prompt,
+          },
+        ],
       })
-    ])
 
-    const response = await this.aiService.generateContent({
-      contents: [
-        {
-          fileData: {
-            displayName: financialsUploadedFile.displayName,
-            fileUri: financialsUploadedFile.uri,
-            mimeType: financialsUploadedFile.mimeType,
-          },
-        },
-        {
-          fileData: {
-            displayName: balanceSheetUploadedFile.displayName,
-            fileUri: balanceSheetUploadedFile.uri,
-            mimeType: balanceSheetUploadedFile.mimeType,
-          },
-        },
-        {
-          text: prompt,
-        },
-      ],
-    })
+      const fundamentalAnalysis = parseJson<FundamentalAnalysis>(response.text!)
 
-    const fundamentalAnalysis = parseJson<FundamentalAnalysis>(response.text!)
+      if (this.cacheEnabled) await this.cacheManager.set(cacheKey, fundamentalAnalysis, CACHE_TTL)
 
-    if (this.cacheEnabled) await this.cacheManager.set(cacheKey, fundamentalAnalysis, CACHE_TTL)
-
-    return fundamentalAnalysis
+      return fundamentalAnalysis
+    } finally {
+      await Promise.allSettled([
+        unlink(financialsFilePath),
+        unlink(balanceSheetFilePath)
+      ])
+    }
   }
 }
