@@ -21,7 +21,7 @@ jobs:
 
             git pull origin main
 
-            docker compose down
+            docker compose down core-api stock-data-api
 
             docker compose up -d --build core-api stock-data-api
 
