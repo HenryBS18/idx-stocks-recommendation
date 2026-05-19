@@ -1,4 +1,4 @@
-import { StockLatestPriceDate } from '@types'
+import { StockLatestPriceDate } from '@app/types'
 import csvParser from 'csv-parser'
 import fs from 'fs'
 import { getCsv } from './get-csv'

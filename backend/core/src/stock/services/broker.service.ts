@@ -1,7 +1,7 @@
+
+import { BrokerAnalysis } from '@app/types'
+import { getCsv, parseJson } from '@app/utils'
 import { Injectable } from '@nestjs/common'
-import { BrokerAnalysis } from '@types'
-import { getCsv } from '@utils/get-csv'
-import { parseJson } from '@utils/parse-json'
 import { AiService } from './ai.service'
 
 @Injectable()

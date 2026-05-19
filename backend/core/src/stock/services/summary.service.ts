@@ -1,6 +1,6 @@
+import { GetSummaryParams, SummaryAnalysis } from '@app/types'
+import { parseJson } from '@app/utils'
 import { Injectable } from '@nestjs/common'
-import { GetSummaryParams, SummaryAnalysis } from '@types'
-import { parseJson } from '@utils/parse-json'
 import { AiService } from './ai.service'
 
 @Injectable()

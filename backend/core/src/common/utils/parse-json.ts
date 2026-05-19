@@ -1,4 +1,4 @@
-import { ParseJsonError } from '@errors/parse-json-error'
+import { ParseJsonError } from '@app/errors'
 
 export const parseJson = <T>(jsonString: string): T => {
   try {

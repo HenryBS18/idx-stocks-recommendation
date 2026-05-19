@@ -1,4 +1,4 @@
-import { StockDataType } from '@types'
+import { StockDataType } from '@app/types'
 import { existsSync } from 'fs'
 import { mkdir, writeFile } from 'fs/promises'
 import { join } from 'path'

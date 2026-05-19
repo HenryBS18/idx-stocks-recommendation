@@ -1,5 +1,4 @@
-import { NotFoundError } from '@errors/not-found-error'
-import { ParseJsonError } from '@errors/parse-json-error'
+import { NotFoundError, ParseJsonError } from '@app/errors'
 import { Controller, Get, InternalServerErrorException, NotFoundException, Param } from '@nestjs/common'
 import { StockService } from './stock.service'
 

@@ -1,8 +1,8 @@
-import { systemInstruction } from '@constants/ai'
+import { systemInstruction } from '@app/constants'
+import { GenerateContentParams } from '@app/types'
 import { File, GenerateContentResponse, GoogleGenAI, UploadFileParameters } from '@google/genai'
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { GenerateContentParams } from '@types'
 
 @Injectable()
 export class AiService {

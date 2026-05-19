@@ -1,6 +1,6 @@
+import { NewsAnalysis } from '@app/types'
+import { parseJson } from '@app/utils'
 import { Injectable } from '@nestjs/common'
-import { NewsAnalysis } from '@types'
-import { parseJson } from '@utils/parse-json'
 import { AiService } from './ai.service'
 
 @Injectable()

@@ -22,18 +22,9 @@
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false,
     "paths": {
-      "@utils/*": [
-        "./src/common/utils/*"
-      ],
-      "@types": [
-        "./src/common/types/index.ts"
-      ],
-      "@errors/*": [
-        "./src/common/errors/*"
-      ],
-      "@constants/*": [
-        "./src/common/constants/*"
-      ],
+      "@app/*": [
+        "./src/common/*"
+      ]
     }
   }
 }
