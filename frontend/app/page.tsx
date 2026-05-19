@@ -150,7 +150,7 @@ export default function Home() {
 
           <button
             onClick={() => handleAnalyze()}
-            className="px-4 py-3 rounded-xl bg-blue-600 text-sm font-medium hover:bg-blue-500 transition-colors"
+            className="px-4 py-3 rounded-xl bg-blue-600 text-sm font-medium hover:bg-blue-500 transition-colors cursor-pointer"
           >
             Try Again
           </button>
