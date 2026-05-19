@@ -1,9 +1,10 @@
 export type Status = "idle" | "loading" | "done" | "error"
 
 export type AnalyzeResponse = {
+  ticker: string
+  name: string
   latestPrice: number
   latestDate: string
-  name: string
   trend: string
   support: string[]
   resistance: string[]

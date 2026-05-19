@@ -163,7 +163,7 @@ export default function Home() {
             <div className="flex items-center justify-between">
               <div className='mb-3'>
                 <h2 className="text-2xl font-semibold">
-                  {ticker}
+                  {data?.ticker}
                 </h2>
 
                 <h2 className='text-slate-300 text-xs'>{data?.name}</h2>

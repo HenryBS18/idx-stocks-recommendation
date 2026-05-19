@@ -45,5 +45,6 @@ export type GetSummaryParams = {
 }
 
 export type AnalysisResult = StockLatestPriceDate & BrokerAnalysis & FundamentalAnalysis & NewsAnalysis & TechnicalAnalysis & SummaryAnalysis & {
+  ticker: string
   name: string
 }

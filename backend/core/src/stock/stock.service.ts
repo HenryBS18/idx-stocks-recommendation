@@ -58,8 +58,9 @@ export class StockService {
 			const summary = await this.summaryService.getSummary({ technical, broker, fundamental, news })
 
 			const returnData: AnalysisResult = {
-				...stockLatestPriceDate,
+				ticker,
 				name: data.name,
+				...stockLatestPriceDate,
 				...technical,
 				...broker,
 				...fundamental,
