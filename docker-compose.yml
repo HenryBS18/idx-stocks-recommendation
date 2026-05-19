@@ -6,7 +6,7 @@ services:
     env_file:
       - ./backend/core/.env.prod
     ports:
-      - "4000:4000"
+      - "80:4000"
     depends_on:
       - stock-data-api
   stock-data-api:
