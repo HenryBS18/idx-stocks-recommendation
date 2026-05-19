@@ -1,18 +1,19 @@
 import yfinance as yf
 from datetime import datetime, timedelta
-from utils import normalize_price
+from utils import normalize_price, delete_file_later
 from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
 import csv
 import os
 import requests
+import uuid
 
 dir_name = 'result'
 
 os.makedirs(dir_name, exist_ok=True)
 
 def get_price_historical(ticker: str) -> tuple[str, str]:
-	filename = f'{ticker.upper()}_history.csv'
+	filename = f'{ticker.upper()}_price_historical_{uuid.uuid4()}.csv'
 	file_path = os.path.join(dir_name, filename)
 
 	if os.path.exists(file_path):
@@ -50,11 +51,13 @@ def get_price_historical(ticker: str) -> tuple[str, str]:
 				'volume': int(row['Volume']),
 			})
 
+	delete_file_later(file_path)
+
 	return file_path, filename
 
 
 def get_financials(ticker: str) -> tuple[str, str]:
-	filename = f'{ticker.upper()}_financials.csv'
+	filename = f'{ticker.upper()}_financials_{uuid.uuid4()}.csv'
 	file_path = os.path.join(dir_name, filename)
 
 	if os.path.exists(file_path):
@@ -80,11 +83,13 @@ def get_financials(ticker: str) -> tuple[str, str]:
 
 	df.to_csv(file_path, float_format='%.2f', index_label='date')
 
+	delete_file_later(file_path)
+
 	return file_path, filename
 
 
 def get_balance_sheet(ticker: str) -> tuple[str, str]:
-	filename = f'{ticker.upper()}_balance_sheet.csv'
+	filename = f'{ticker.upper()}_balance_sheet_{uuid.uuid4()}.csv'
 	file_path = os.path.join(dir_name, filename)
 
 	if os.path.exists(file_path):
@@ -101,10 +106,12 @@ def get_balance_sheet(ticker: str) -> tuple[str, str]:
 
 	df.to_csv(file_path, float_format='%.2f', index_label='date')
 
+	delete_file_later(file_path)
+
 	return file_path, filename
 
 def get_broker_summary(ticker: str) -> tuple[str, str]:
-	filename = f'{ticker.upper()}broker_summary.csv'
+	filename = f'{ticker.upper()}broker_summary_{uuid.uuid4()}.csv'
 	file_path = os.path.join(dir_name, filename)
 
 	if os.path.exists(file_path):
@@ -191,6 +198,8 @@ def get_broker_summary(ticker: str) -> tuple[str, str]:
 				sell_value,
 				sell_avg,
 			])
+
+	delete_file_later(file_path)
 
 	return file_path, filename
 
