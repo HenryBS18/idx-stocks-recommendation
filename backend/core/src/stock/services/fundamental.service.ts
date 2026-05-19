@@ -35,10 +35,10 @@ export class FundamentalService {
 			- Ringkas neraca keuangan
 
 			Aturan laporan keuangan:
-			- Jika data tidak tersedia maka output "Data fundamental tidak tersedia saat ini"
+			- Jika data tidak tersedia maka output "financials": "Data fundamental tidak tersedia saat ini"
 
 			Aturan neraca keuangan:
-			- jika data tidak tersedia maka output ""
+			- jika data tidak tersedia maka output "balanceSheet": ""
 
 			Format output:
 			{
@@ -47,22 +47,25 @@ export class FundamentalService {
 			}
 		`
 
-    const financialsFilePath = await getCsv(ticker, 'financials')
-    const balanceSheetFilePath = await getCsv(ticker, 'balance-sheet')
+    const [financialsFilePath, balanceSheetFilePath] = await Promise.all([
+      getCsv(ticker, 'financials'),
+      getCsv(ticker, 'balance-sheet')
+    ])
 
-    const financialsUploadedFile = await this.aiService.upload({
-      file: financialsFilePath,
-      config: {
-        mimeType: 'text/csv',
-      },
-    })
-
-    const balanceSheetUploadedFile = await this.aiService.upload({
-      file: balanceSheetFilePath,
-      config: {
-        mimeType: 'text/csv',
-      },
-    })
+    const [financialsUploadedFile, balanceSheetUploadedFile] = await Promise.all([
+      this.aiService.upload({
+        file: financialsFilePath,
+        config: {
+          mimeType: 'text/csv',
+        },
+      }),
+      this.aiService.upload({
+        file: balanceSheetFilePath,
+        config: {
+          mimeType: 'text/csv',
+        },
+      })
+    ])
 
     const response = await this.aiService.generateContent({
       contents: [
