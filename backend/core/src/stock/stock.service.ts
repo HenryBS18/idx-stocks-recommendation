@@ -13,7 +13,7 @@ import { TechnicalService } from './services/technical.service'
 
 @Injectable()
 export class StockService {
-	private readonly stockDataBaseApiUrl: string
+	private readonly stockDataApiUrl: string
 	private readonly cacheEnabled: boolean
 
 	constructor(
@@ -27,7 +27,7 @@ export class StockService {
 		private readonly summaryService: SummaryService,
 
 	) {
-		this.stockDataBaseApiUrl = this.configService.getOrThrow<string>('STOCK_DATA_BASE_API_URL')
+		this.stockDataApiUrl = this.configService.getOrThrow<string>('STOCK_DATA_API_URL')
 		this.cacheEnabled = this.configService.getOrThrow<string>('CACHE_ENABLED') === 'true'
 	}
 
@@ -42,7 +42,7 @@ export class StockService {
 				if (cachedAnalysis) return cachedAnalysis
 			}
 
-			const stockNameResponse = await fetch(`${this.stockDataBaseApiUrl}/stock/${ticker}/name`)
+			const stockNameResponse = await fetch(`${this.stockDataApiUrl}/stock/${ticker}/name`)
 			const data = await stockNameResponse.json()
 
 			if (!stockNameResponse.ok) throw new NotFoundError(data.message)

@@ -7,7 +7,7 @@ export async function POST(req: NextRequest) {
     const ticker = body.ticker
 
     const response = await fetch(
-      `${process.env.API_BASE_URL}/stock/${ticker}`
+      `${process.env.API_URL}/stock/${ticker}`
     )
 
     const data = await response.json()
