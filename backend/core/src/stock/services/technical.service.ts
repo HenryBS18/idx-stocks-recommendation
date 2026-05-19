@@ -1,13 +1,32 @@
+import { CACHE_TTL } from '@app/constants'
 import { TechnicalAnalysis } from '@app/types'
 import { getCsv, parseJson } from '@app/utils'
-import { Injectable } from '@nestjs/common'
+import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager'
+import { Inject, Injectable } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
 import { AiService } from './ai.service'
 
 @Injectable()
 export class TechnicalService {
-	constructor(private readonly aiService: AiService) { }
+	private readonly cacheEnabled: boolean
+
+	constructor(
+		@Inject(CACHE_MANAGER)
+		private readonly cacheManager: Cache,
+		private readonly aiService: AiService,
+		private readonly configService: ConfigService,
+	) {
+		this.cacheEnabled = this.configService.getOrThrow<string>('CACHE_ENABLED') === 'true'
+	}
 
 	async getTechnical(ticker: string): Promise<TechnicalAnalysis> {
+		const cacheKey = `${ticker}-technical`
+
+		if (this.cacheEnabled) {
+			const cachedTechnicalAnalysis = await this.cacheManager.get<TechnicalAnalysis>(cacheKey)
+			if (cachedTechnicalAnalysis) return cachedTechnicalAnalysis
+		}
+
 		const prompt = `
 			Analisis data historis harga berikut.
 
@@ -68,6 +87,10 @@ export class TechnicalService {
 			],
 		})
 
-		return parseJson<TechnicalAnalysis>(response.text!)
+		const technicalAnalysis = parseJson<TechnicalAnalysis>(response.text!)
+
+		if (this.cacheEnabled) await this.cacheManager.set(cacheKey, technicalAnalysis, CACHE_TTL)
+
+		return technicalAnalysis
 	}
 }

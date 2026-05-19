@@ -1,13 +1,32 @@
+import { CACHE_TTL } from '@app/constants'
 import { GetSummaryParams, SummaryAnalysis } from '@app/types'
 import { parseJson } from '@app/utils'
-import { Injectable } from '@nestjs/common'
+import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager'
+import { Inject, Injectable } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
 import { AiService } from './ai.service'
 
 @Injectable()
 export class SummaryService {
-  constructor(private readonly aiService: AiService) { }
+  private readonly cacheEnabled: boolean
 
-  async getSummary({ technical, broker, fundamental, news }: GetSummaryParams): Promise<SummaryAnalysis> {
+  constructor(
+    @Inject(CACHE_MANAGER)
+    private readonly cacheManager: Cache,
+    private readonly aiService: AiService,
+    private readonly configService: ConfigService,
+  ) {
+    this.cacheEnabled = this.configService.getOrThrow<string>('CACHE_ENABLED') === 'true'
+  }
+
+  async getSummary({ ticker, technical, broker, fundamental, news }: GetSummaryParams): Promise<SummaryAnalysis> {
+    const cacheKey = `${ticker}-summary`
+
+    if (this.cacheEnabled) {
+      const cachedSummaryAnalysis = await this.cacheManager.get<SummaryAnalysis>(cacheKey)
+      if (cachedSummaryAnalysis) return cachedSummaryAnalysis
+    }
+
     const prompt = `
 			Analisis hasil ringkasan teknikal, broker summary, laporan keuangan, neraca keuangan, dan berita berikut.
 
@@ -49,6 +68,10 @@ export class SummaryService {
       ],
     })
 
-    return parseJson<SummaryAnalysis>(response.text!)
+    const summaryAnalysis = parseJson<SummaryAnalysis>(response.text!)
+
+    if (this.cacheEnabled) await this.cacheManager.set(cacheKey, summaryAnalysis, CACHE_TTL)
+
+    return summaryAnalysis
   }
 }

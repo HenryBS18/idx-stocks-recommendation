@@ -1,13 +1,32 @@
+import { CACHE_TTL } from '@app/constants'
 import { FundamentalAnalysis } from '@app/types'
 import { getCsv, parseJson } from '@app/utils'
-import { Injectable } from '@nestjs/common'
+import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager'
+import { Inject, Injectable } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
 import { AiService } from './ai.service'
 
 @Injectable()
 export class FundamentalService {
-  constructor(private readonly aiService: AiService) { }
+  private readonly cacheEnabled: boolean
+
+  constructor(
+    @Inject(CACHE_MANAGER)
+    private readonly cacheManager: Cache,
+    private readonly aiService: AiService,
+    private readonly configService: ConfigService,
+  ) {
+    this.cacheEnabled = this.configService.getOrThrow<string>('CACHE_ENABLED') === 'true'
+  }
 
   async getFundamental(ticker: string): Promise<FundamentalAnalysis> {
+    const cacheKey = `${ticker}-fundamental`
+
+    if (this.cacheEnabled) {
+      const cachedFundamentalAnalysis = await this.cacheManager.get<FundamentalAnalysis>(cacheKey)
+      if (cachedFundamentalAnalysis) return cachedFundamentalAnalysis
+    }
+
     const prompt = `
 			Analisis laporan keuangan, neraca keuangan, dan berita berikut.
 
@@ -67,6 +86,10 @@ export class FundamentalService {
       ],
     })
 
-    return parseJson<FundamentalAnalysis>(response.text!)
+    const fundamentalAnalysis = parseJson<FundamentalAnalysis>(response.text!)
+
+    if (this.cacheEnabled) await this.cacheManager.set(cacheKey, fundamentalAnalysis, CACHE_TTL)
+
+    return fundamentalAnalysis
   }
 }

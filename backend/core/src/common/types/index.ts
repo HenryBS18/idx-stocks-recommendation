@@ -38,6 +38,7 @@ export type SummaryAnalysis = {
 }
 
 export type GetSummaryParams = {
+  ticker: string
   technical: TechnicalAnalysis
   broker: BrokerAnalysis
   fundamental: FundamentalAnalysis

@@ -1,14 +1,33 @@
 
+import { CACHE_TTL } from '@app/constants'
 import { BrokerAnalysis } from '@app/types'
 import { getCsv, parseJson } from '@app/utils'
-import { Injectable } from '@nestjs/common'
+import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager'
+import { Inject, Injectable } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
 import { AiService } from './ai.service'
 
 @Injectable()
 export class BrokerService {
-  constructor(private readonly aiService: AiService) { }
+  private readonly cacheEnabled: boolean
+
+  constructor(
+    @Inject(CACHE_MANAGER)
+    private readonly cacheManager: Cache,
+    private readonly aiService: AiService,
+    private readonly configService: ConfigService,
+  ) {
+    this.cacheEnabled = this.configService.getOrThrow<string>('CACHE_ENABLED') === 'true'
+  }
 
   async getBroker(ticker: string): Promise<BrokerAnalysis> {
+    const cacheKey = `${ticker}-broker`
+
+    if (this.cacheEnabled) {
+      const cachedBrokerAnalysis = await this.cacheManager.get<BrokerAnalysis>(cacheKey)
+      if (cachedBrokerAnalysis) return cachedBrokerAnalysis
+    }
+
     const prompt = `
       Analisis data broker summary berikut.
 			
@@ -45,6 +64,10 @@ export class BrokerService {
       ],
     })
 
-    return parseJson<BrokerAnalysis>(response.text!)
+    const brokerAnalysis = parseJson<BrokerAnalysis>(response.text!)
+
+    if (this.cacheEnabled) await this.cacheManager.set(cacheKey, brokerAnalysis, CACHE_TTL)
+
+    return brokerAnalysis
   }
 }
