@@ -15,6 +15,12 @@ export class AiService {
   }
 
   async generateContent(params: GenerateContentParams): Promise<GenerateContentResponse> {
+    const controller = new AbortController()
+
+    const timeout = setTimeout(() => {
+      controller.abort()
+    }, 20000)
+
     try {
       return await this.ai.models.generateContent({
         ...params,
@@ -23,15 +29,22 @@ export class AiService {
           ...params.config,
           systemInstruction: systemInstruction,
           temperature: 0.1,
-          responseMimeType: params.config?.responseMimeType ?? 'application/json'
-        }
+          responseMimeType: params.config?.responseMimeType ?? 'application/json',
+          abortSignal: controller.signal
+        },
+
       })
     } catch (error) {
       let errorMessage = ''
 
-      if (error instanceof Error && error.message.toLowerCase().includes('high demand')) errorMessage = 'AI model is currently unavailable'
+      if (error instanceof Error) {
+        if (error.message.toLowerCase().includes('high demand')) errorMessage = 'AI model is currently unavailable'
+        else if (error.name === 'AbortError') errorMessage = 'Request timeout'
+      }
 
       throw new Error(errorMessage)
+    } finally {
+      clearTimeout(timeout)
     }
   }
 
