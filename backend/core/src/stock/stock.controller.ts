@@ -7,7 +7,7 @@ export class StockController {
 	constructor(private readonly stockService: StockService) { }
 
 	@Get(':ticker')
-	async test(@Param('ticker') ticker: string) {
+	async stock(@Param('ticker') ticker: string) {
 		try {
 			return await this.stockService.analyze(ticker)
 		} catch (error) {

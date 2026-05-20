@@ -10,7 +10,6 @@ import { EnvService } from 'src/env/env.service'
 
 @Injectable()
 export class BrokerService {
-
   constructor(
     @Inject(CACHE_MANAGER)
     private readonly cacheManager: Cache,
