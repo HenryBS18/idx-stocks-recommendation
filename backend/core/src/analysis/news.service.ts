@@ -3,8 +3,8 @@ import { NewsAnalysis } from '@app/types'
 import { parseJson } from '@app/utils'
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager'
 import { Inject, Injectable, Logger } from '@nestjs/common'
+import { AiService } from 'src/ai/ai.service'
 import { EnvService } from 'src/env/env.service'
-import { AiService } from './ai.service'
 
 @Injectable()
 export class NewsService {
@@ -15,8 +15,8 @@ export class NewsService {
     private readonly env: EnvService,
   ) { }
 
-  async getNews(ticker: string): Promise<NewsAnalysis> {
-    Logger.debug('Hit', this.getNews.name)
+  async getAnalysis(ticker: string): Promise<NewsAnalysis> {
+    Logger.debug('Hit', NewsService.name)
 
     const cacheKey = `${ticker}-news`
 

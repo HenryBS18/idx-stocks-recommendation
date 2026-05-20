@@ -5,8 +5,8 @@ import { getCsv, parseJson } from '@app/utils'
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager'
 import { Inject, Injectable, Logger } from '@nestjs/common'
 import { unlink } from 'fs/promises'
+import { AiService } from 'src/ai/ai.service'
 import { EnvService } from 'src/env/env.service'
-import { AiService } from './ai.service'
 
 @Injectable()
 export class BrokerService {
@@ -18,8 +18,8 @@ export class BrokerService {
     private readonly env: EnvService,
   ) { }
 
-  async getBroker(ticker: string): Promise<BrokerAnalysis> {
-    Logger.debug('Hit', this.getBroker.name)
+  async getAnalysis(ticker: string): Promise<BrokerAnalysis> {
+    Logger.debug('Hit', BrokerService.name)
 
     const cacheKey = `${ticker}-broker`
 

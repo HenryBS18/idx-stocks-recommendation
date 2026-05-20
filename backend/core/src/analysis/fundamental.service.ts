@@ -4,8 +4,8 @@ import { getCsv, parseJson } from '@app/utils'
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager'
 import { Inject, Injectable, Logger } from '@nestjs/common'
 import { unlink } from 'fs/promises'
+import { AiService } from 'src/ai/ai.service'
 import { EnvService } from 'src/env/env.service'
-import { AiService } from './ai.service'
 
 @Injectable()
 export class FundamentalService {
@@ -16,8 +16,8 @@ export class FundamentalService {
     private readonly env: EnvService,
   ) { }
 
-  async getFundamental(ticker: string): Promise<FundamentalAnalysis> {
-    Logger.debug('Hit', this.getFundamental.name)
+  async getAnalysis(ticker: string): Promise<FundamentalAnalysis> {
+    Logger.debug('Hit', FundamentalService.name)
 
     const cacheKey = `${ticker}-fundamental`
 

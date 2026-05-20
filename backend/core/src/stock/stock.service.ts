@@ -3,12 +3,12 @@ import { NotFoundError } from '@app/errors'
 import { AnalysisResult } from '@app/types'
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager'
 import { Inject, Injectable, Logger } from '@nestjs/common'
+import { BrokerService } from 'src/analysis/broker.service'
+import { FundamentalService } from 'src/analysis/fundamental.service'
+import { NewsService } from 'src/analysis/news.service'
+import { SummaryService } from 'src/analysis/summary.service'
+import { TechnicalService } from 'src/analysis/technical.service'
 import { EnvService } from 'src/env/env.service'
-import { BrokerService } from './services/broker.service'
-import { FundamentalService } from './services/fundamental.service'
-import { NewsService } from './services/news.service'
-import { SummaryService } from './services/summary.service'
-import { TechnicalService } from './services/technical.service'
 
 @Injectable()
 export class StockService {
@@ -42,13 +42,13 @@ export class StockService {
 			if (!stockNameResponse.ok) throw new NotFoundError(data.message)
 
 			const [technical, broker, fundamental, news] = await Promise.all([
-				this.technicalService.getTechnical(ticker),
-				this.brokerService.getBroker(ticker),
-				this.fundamentalService.getFundamental(ticker),
-				this.newsService.getNews(ticker)
+				this.technicalService.getAnalysis(ticker),
+				this.brokerService.getAnalysis(ticker),
+				this.fundamentalService.getAnalysis(ticker),
+				this.newsService.getAnalysis(ticker)
 			])
 
-			const summary = await this.summaryService.getSummary({ ticker, technical, broker, fundamental, news })
+			const summary = await this.summaryService.getAnalysis({ ticker, technical, broker, fundamental, news })
 
 			const returnData: AnalysisResult = {
 				ticker,
