@@ -3,29 +3,25 @@ import { FundamentalAnalysis } from '@app/types'
 import { getCsv, parseJson } from '@app/utils'
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager'
 import { Inject, Injectable, Logger } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
 import { unlink } from 'fs/promises'
+import { EnvService } from 'src/env/env.service'
 import { AiService } from './ai.service'
 
 @Injectable()
 export class FundamentalService {
-  private readonly cacheEnabled: boolean
-
   constructor(
     @Inject(CACHE_MANAGER)
     private readonly cacheManager: Cache,
     private readonly aiService: AiService,
-    private readonly configService: ConfigService,
-  ) {
-    this.cacheEnabled = this.configService.getOrThrow<string>('CACHE_ENABLED') === 'true'
-  }
+    private readonly env: EnvService,
+  ) { }
 
   async getFundamental(ticker: string): Promise<FundamentalAnalysis> {
     Logger.debug('Hit', this.getFundamental.name)
 
     const cacheKey = `${ticker}-fundamental`
 
-    if (this.cacheEnabled) {
+    if (this.env.CACHE_ENABLED) {
       const cachedFundamentalAnalysis = await this.cacheManager.get<FundamentalAnalysis>(cacheKey)
       if (cachedFundamentalAnalysis) return cachedFundamentalAnalysis
     }
@@ -95,7 +91,7 @@ export class FundamentalService {
 
       const fundamentalAnalysis = parseJson<FundamentalAnalysis>(response.text!)
 
-      if (this.cacheEnabled) await this.cacheManager.set(cacheKey, fundamentalAnalysis, CACHE_TTL)
+      if (this.env.CACHE_ENABLED) await this.cacheManager.set(cacheKey, fundamentalAnalysis, CACHE_TTL)
 
       return fundamentalAnalysis
     } finally {

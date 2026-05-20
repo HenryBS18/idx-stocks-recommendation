@@ -3,28 +3,24 @@ import { NewsAnalysis } from '@app/types'
 import { parseJson } from '@app/utils'
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager'
 import { Inject, Injectable, Logger } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
+import { EnvService } from 'src/env/env.service'
 import { AiService } from './ai.service'
 
 @Injectable()
 export class NewsService {
-  private readonly cacheEnabled: boolean
-
   constructor(
     @Inject(CACHE_MANAGER)
     private readonly cacheManager: Cache,
     private readonly aiService: AiService,
-    private readonly configService: ConfigService,
-  ) {
-    this.cacheEnabled = this.configService.getOrThrow<string>('CACHE_ENABLED') === 'true'
-  }
+    private readonly env: EnvService,
+  ) { }
 
   async getNews(ticker: string): Promise<NewsAnalysis> {
     Logger.debug('Hit', this.getNews.name)
 
     const cacheKey = `${ticker}-news`
 
-    if (this.cacheEnabled) {
+    if (this.env.CACHE_ENABLED) {
       const cachedNewsAnalysis = await this.cacheManager.get<NewsAnalysis>(cacheKey)
       if (cachedNewsAnalysis) return cachedNewsAnalysis
     }
@@ -68,7 +64,7 @@ export class NewsService {
 
     const newsAnalysis = parseJson<NewsAnalysis>(response.text!)
 
-    if (this.cacheEnabled) await this.cacheManager.set(cacheKey, newsAnalysis, CACHE_TTL)
+    if (this.env.CACHE_ENABLED) await this.cacheManager.set(cacheKey, newsAnalysis, CACHE_TTL)
 
     return newsAnalysis
   }

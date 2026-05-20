@@ -3,7 +3,7 @@ import { NotFoundError } from '@app/errors'
 import { AnalysisResult } from '@app/types'
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager'
 import { Inject, Injectable, Logger } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
+import { EnvService } from 'src/env/env.service'
 import { BrokerService } from './services/broker.service'
 import { FundamentalService } from './services/fundamental.service'
 import { NewsService } from './services/news.service'
@@ -12,23 +12,16 @@ import { TechnicalService } from './services/technical.service'
 
 @Injectable()
 export class StockService {
-	private readonly stockDataApiUrl: string
-	private readonly cacheEnabled: boolean
-
 	constructor(
 		@Inject(CACHE_MANAGER)
 		private readonly cacheManager: Cache,
-		private readonly configService: ConfigService,
+		private readonly env: EnvService,
 		private readonly technicalService: TechnicalService,
 		private readonly brokerService: BrokerService,
 		private readonly fundamentalService: FundamentalService,
 		private readonly newsService: NewsService,
 		private readonly summaryService: SummaryService,
-
-	) {
-		this.stockDataApiUrl = this.configService.getOrThrow<string>('STOCK_DATA_API_URL')
-		this.cacheEnabled = this.configService.getOrThrow<string>('CACHE_ENABLED') === 'true'
-	}
+	) { }
 
 	async analyze(ticker: string): Promise<AnalysisResult> {
 		Logger.debug('Hit', this.analyze.name)
@@ -38,12 +31,12 @@ export class StockService {
 
 			const cacheKey = `${ticker}-analysis`
 
-			if (this.cacheEnabled) {
+			if (this.env.CACHE_ENABLED) {
 				const cachedAnalysis = await this.cacheManager.get<AnalysisResult>(cacheKey)
 				if (cachedAnalysis) return cachedAnalysis
 			}
 
-			const stockNameResponse = await fetch(`${this.stockDataApiUrl}/stock/${ticker}/name`)
+			const stockNameResponse = await fetch(`${this.env.STOCK_DATA_API_URL}/stock/${ticker}/name`)
 			const data = await stockNameResponse.json()
 
 			if (!stockNameResponse.ok) throw new NotFoundError(data.message)
@@ -67,7 +60,7 @@ export class StockService {
 				...summary,
 			}
 
-			if (this.cacheEnabled) await this.cacheManager.set(cacheKey, returnData, CACHE_TTL)
+			if (this.env.CACHE_ENABLED) await this.cacheManager.set(cacheKey, returnData, CACHE_TTL)
 
 			return returnData
 		} catch (error) {

@@ -1,23 +1,16 @@
 import KeyvRedis from '@keyv/redis'
 import { Injectable, Logger } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
+import { EnvService } from 'src/env/env.service'
 
 @Injectable()
 export class RedisService {
   private readonly logger: Logger
   private readonly redis: KeyvRedis<unknown>
 
-  constructor(private readonly configService: ConfigService) {
+  constructor(private readonly env: EnvService) {
     this.logger = new Logger(RedisService.name)
 
-    const redisHost = this.configService.get<string>('REDIS_HOST')
-    const redisPort = this.configService.get<string>('REDIS_PORT')
-    const redisUser = this.configService.get<string>('REDIS_USER')
-    const redisPassword = this.configService.get<string>('REDIS_PASSWORD')
-
-    const redisUrl = `redis://${redisUser}:${redisPassword}@${redisHost}:${redisPort}`
-
-    this.redis = new KeyvRedis(redisUrl)
+    this.redis = new KeyvRedis(this.env.REDIS_URL)
 
     this.redis.on('connect', () => {
       this.logger.log('Connected')

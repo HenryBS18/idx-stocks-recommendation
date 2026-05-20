@@ -2,16 +2,14 @@ import { systemInstruction } from '@app/constants'
 import { GenerateContentParams } from '@app/types'
 import { File, GenerateContentResponse, GoogleGenAI, UploadFileParameters } from '@google/genai'
 import { Injectable } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
+import { EnvService } from 'src/env/env.service'
 
 @Injectable()
 export class AiService {
   private ai: GoogleGenAI
-  private model: string
 
-  constructor(private readonly configService: ConfigService) {
-    this.ai = new GoogleGenAI({ apiKey: this.configService.get<string>('GEMINI_API_KEY') })
-    this.model = this.configService.getOrThrow<string>('AI_MODEL')
+  constructor(private readonly env: EnvService) {
+    this.ai = new GoogleGenAI({ apiKey: this.env.GEMINI_API_KEY })
   }
 
   async generateContent(params: GenerateContentParams): Promise<GenerateContentResponse> {
@@ -24,7 +22,7 @@ export class AiService {
     try {
       return await this.ai.models.generateContent({
         ...params,
-        model: this.model,
+        model: this.env.AI_MODEL,
         config: {
           ...params.config,
           systemInstruction: systemInstruction,
