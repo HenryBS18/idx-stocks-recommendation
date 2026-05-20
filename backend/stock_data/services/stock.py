@@ -205,7 +205,7 @@ class StockService:
 
 		return file_path, filename
 
-	def get_name(ticker: str) -> str:
+	def get_name(self, ticker: str) -> str:
 		url = os.getenv('IDX_OWNERSHIP_API_URL')
 
 		res = requests.get(f'{url}/stock/{ticker}/name')
