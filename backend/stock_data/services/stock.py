@@ -20,6 +20,11 @@ class StockService:
 
 		if os.path.exists(file_path):
 			return file_path, filename
+		
+		ticker_valid = self.get_name(ticker)
+
+		if ticker_valid == None:
+			raise Exception
 
 		yf_ticker = yf.Ticker(f'{ticker.upper()}.JK')
 
@@ -65,6 +70,11 @@ class StockService:
 		if os.path.exists(file_path):
 			return file_path, filename
 		
+		ticker_valid = self.get_name(ticker)
+
+		if ticker_valid == None:
+			raise Exception
+		
 		yf_ticker = yf.Ticker(f'{ticker.upper()}.JK')
 
 		df = yf_ticker.get_financials(freq='quarterly')
@@ -97,6 +107,11 @@ class StockService:
 		if os.path.exists(file_path):
 			return file_path, filename
 		
+		ticker_valid = self.get_name(ticker)
+
+		if ticker_valid == None:
+			raise Exception
+		
 		yf_ticker = yf.Ticker(f'{ticker.upper()}.JK')
 
 		df = yf_ticker.get_balance_sheet(freq='quarterly')
@@ -118,6 +133,11 @@ class StockService:
 
 		if os.path.exists(file_path):
 			return file_path, filename
+		
+		ticker_valid = self.get_name(ticker)
+
+		if ticker_valid == None:
+			raise Exception
 
 		url = os.getenv('NEOBDM_URL')
 		sessionId = os.getenv('NEOBDM_SESSIONID')
