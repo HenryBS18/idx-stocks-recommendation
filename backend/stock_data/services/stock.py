@@ -152,10 +152,10 @@ class StockService:
 			'start_date': start_date.strftime('%d %b %Y'),
 			'end_date': end_date.strftime('%d %b %Y'),
 			'event': 'load',
-			'foreign_only': False,
-			'domestic_only': False,
-			'net': True,
-			'show_broker_inventory': False,
+			'foreign_only': 'false',
+			'domestic_only': 'false',
+			'net': 'true',
+			'show_broker_inventory': 'false',
 			'csrfmiddlewaretoken': csrf_middleware_token,
 		}
 
