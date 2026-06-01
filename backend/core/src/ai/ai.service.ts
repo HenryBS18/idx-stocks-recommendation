@@ -26,7 +26,7 @@ export class AiService {
         config: {
           ...params.config,
           systemInstruction: systemInstruction,
-          temperature: 0.1,
+          temperature: 0,
           responseMimeType: params.config?.responseMimeType ?? 'application/json',
           abortSignal: controller.signal
         },
