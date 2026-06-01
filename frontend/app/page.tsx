@@ -227,7 +227,7 @@ export default function Home() {
             </div>
 
             <div className="mb-3">
-              <h2 className='text-xl'>Broker Summary</h2>
+              <h2 className='text-xl'>Bandarmologi</h2>
 
               <p className='text-slate-300'>{data?.brokerSummary}</p>
             </div>
