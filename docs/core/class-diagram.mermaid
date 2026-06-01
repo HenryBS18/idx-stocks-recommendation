@@ -1,0 +1,154 @@
+classDiagram
+    AppModule <|-- AiModule
+    AppModule <|-- AnalysisModule
+    AppModule <|-- CommonModule
+    AppModule <|-- EnvModule
+    AppModule <|-- RedisModule
+    AppModule <|-- StockModule
+
+    AiModule <|-- AiService
+
+    AnalysisModule <|-- BrokerService
+    AnalysisModule <|-- FundamentalService
+    AnalysisModule <|-- NewsService
+    AnalysisModule <|-- SummaryService
+    AnalysisModule <|-- TechnicalService
+
+    CommonModule <|-- Constants
+    CommonModule <|-- Errors
+    CommonModule <|-- Interceptors
+    CommonModule <|-- Types
+    CommonModule <|-- Utils
+
+    EnvModule <|-- EnvService
+    RedisModule <|-- RedisService
+    StockModule <|-- StockService
+    StockModule <|-- StockController
+
+    class AiModule {}
+    class AnalysisModule {}
+    class CommonModule {}
+    class EnvModule {}
+    class RedisModule {}
+    class StockModule {}
+
+    class Constants {
+        +ai any
+        +cache any
+    }
+
+    class Errors {
+        +NotFoundError Error
+        +ParseJsonError Error
+    }
+
+    class Interceptors {
+        +loggingInterceptor() void
+    }
+
+    class Types {
+        +StockDataType
+        +StockLatestPriceDate
+        +GenerateContentParams
+        +BrokerAnalysis
+        +FundamentalAnalysis
+        +NewsAnalysis
+        +TechnicalAnalysis
+        +SummaryAnalysis
+        +GetSummaryParams
+        +AnalysisResult
+    }
+
+    class Utils {
+        +getCsv() string
+        +getStockLatestPriceDate() GetStockLatestPriceDate
+        +parseJson() object
+    }
+
+    class AiService {
+        -ai GoogleGenAI
+
+        +generateContent()
+        +upload()
+    }
+
+    class BrokerService {
+        -cacheManager Cache
+        -aiService AiService
+        -env EnvService
+
+        +getAnalysis() BrokerAnalysis
+    }
+
+    class FundamentalService {
+        -cacheManager Cache
+        -aiService AiService
+        -env EnvService
+
+        +getAnalysis() FundamentalAnalysis
+    }
+
+    class NewsService {
+        -cacheManager Cache
+        -aiService AiService
+        -env EnvService
+
+        +getAnalysis() NewsAnalysis
+    }
+
+    class SummaryService {
+        -cacheManager Cache
+        -aiService AiService
+        -env EnvService
+
+        +getAnalysis() SummaryAnalysis
+    }
+
+    class TechnicalService {
+        -cacheManager Cache
+        -aiService AiService
+        -env EnvService
+
+        +getAnalysis() TechnicalAnalysis
+    }
+
+    class EnvService {
+        -geminiApiKey string
+        -stockDataApiUrl string
+        -aiModel string
+        -cacheEnabled boolean
+        -redisHost string
+        -redisPort number
+        -redisUser string
+        -redisPassword string
+
+        +GEMINI_API_KEY() string
+        +STOCK_DATA_API_URL() string
+        +AI_MODEL() string
+        +CACHE_ENABLED() boolean
+        +REDIS_URL() string
+    }
+
+    class RedisService {
+        -redis KeyVRedis
+
+        +redisStore() KeyVRedis
+    }
+
+    class StockService {
+        -cacheManager Cache
+        -env EnvService
+        -technicalService TechnicalService
+        -brokerService BrokerService
+        -fundamentalService FundamentalService
+        -newsService NewsService
+        -summaryService SummaryService
+
+        +analyze() AnalysisResult
+    }
+
+	class StockController {
+		-stockService StockService
+
+		+stock() void
+	}

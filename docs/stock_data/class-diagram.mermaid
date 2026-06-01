@@ -1,0 +1,34 @@
+classDiagram
+	App <|-- StockService
+	App <|-- StockRoute
+	App <|-- Utils
+	
+	class App {
+		-app Flask
+
+		+get_app() Flask
+		+run() void
+	}
+
+	class StockService {
+		-dir_name string
+
+		+get_price_historical() object
+		+get_financials() object
+		+get_balance_sheet() object
+		+get_broker_summary() object
+		+get_name() string
+	}
+
+	class StockRoute {
+		+get_price_historical_route() CsvFile
+		+get_financials_route() CsvFile
+		+get_balance_sheet_route() CsvFile
+		+get_broker_summary_route() CsvFile
+		+get_name_route() Json
+	}
+
+	class Utils {
+		+delete_file_later() void
+		+normalize_price() number
+	}
