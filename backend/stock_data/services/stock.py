@@ -202,14 +202,14 @@ class StockService:
 					continue
 
 				buy_broker = cols[0].get_text(strip=True)
-				buy_lot = int(cols[1].get_text(strip=True).replace(',', ''))
+				buy_lot = '' if cols[1].get_text(strip=True) == '' else int(cols[1].get_text(strip=True).replace(',', ''))
 				buy_value = cols[2].get_text(strip=True)
-				buy_avg = float(cols[3].get_text(strip=True).replace(',', ''))
+				buy_avg = '' if cols[3].get_text(strip=True) == '' else float(cols[3].get_text(strip=True).replace(',', ''))
 
 				sell_broker = cols[4].get_text(strip=True)
-				sell_lot = int(cols[5].get_text(strip=True).replace(',', ''))
+				sell_lot = '' if cols[5].get_text(strip=True) == '' else int(cols[5].get_text(strip=True).replace(',', ''))
 				sell_value = cols[6].get_text(strip=True)
-				sell_avg = float(cols[7].get_text(strip=True).replace(',', ''))
+				sell_avg = '' if cols[7].get_text(strip=True) == '' else float(cols[7].get_text(strip=True).replace(',', ''))
 
 				writer.writerow([
 					buy_broker,
