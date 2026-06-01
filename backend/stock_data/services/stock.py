@@ -140,8 +140,9 @@ class StockService:
 			raise Exception
 
 		url = os.getenv('NEOBDM_URL')
-		sessionId = os.getenv('NEOBDM_SESSIONID')
-		csrfmiddlewaretoken = os.getenv('NEOBDM_CSRF_TOKEN')
+		session_id = os.getenv('NEOBDM_SESSIONID')
+		csrf_token = os.getenv('NEOBDM_CSRF_TOKEN')
+		csrf_middleware_token = os.getenv('NEOBDM_CSRF_MIDDLEWARE_TOKEN')
 
 		end_date = datetime.now() + timedelta(days=1)
 		start_date = end_date - timedelta(days=90)
@@ -155,7 +156,7 @@ class StockService:
 			'domestic_only': False,
 			'net': True,
 			'show_broker_inventory': False,
-			'csrfmiddlewaretoken': csrfmiddlewaretoken,
+			'csrfmiddlewaretoken': csrf_middleware_token,
 		}
 
 		headers = {
@@ -163,8 +164,8 @@ class StockService:
 		}
 
 		cookies = {
-			'sessionid': sessionId,
-			'csrftoken': csrfmiddlewaretoken,
+			'sessionid': session_id,
+			'csrftoken': csrf_token,
 		}
 
 		res = requests.post(
