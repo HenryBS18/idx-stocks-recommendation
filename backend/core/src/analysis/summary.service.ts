@@ -35,6 +35,7 @@ export class SummaryService {
 			
 			Aturan Kesimpulan:
 			- Kesimpulan dari semua data yang diberikan
+      - Gunakan kalimat yang mudah dimengerti bahkan oleh orang awam
 			
 			Aturan Rekomendasi:
 			- Tentukan berdasarkan semua data yang diberikan

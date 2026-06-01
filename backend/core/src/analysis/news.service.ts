@@ -32,19 +32,36 @@ export class NewsService {
     })
 
     const prompt = `
-      Tugas:
-      - Cari berita paling mutakhir emiten ${ticker} khusus untuk tanggal hari ini ${today}
+      Hari ini adalah ${today}. Gunakan ini sebagai referensi waktu, bukan filter ketat.
 
-      Aturan:
-			- Jika tidak ada berita paling mutakhir untuk emiten ${ticker}, maka cari berita sebelumnya.
-			- Jangan cari berita emiten lain.
-			- Ringkas dalam 1 paragraf.
+      Cakupan pencarian (urutan prioritas):
+      - Berita langsung tentang emiten ${ticker}
+      - Berita sektor industri yang relevan dengan ${ticker}
+      - Sentimen atau kebijakan domestik dan internasional yang berdampak pada ${ticker}
+      - Hasil review atau rebalancing indeks global terbaru (MSCI, FTSE, GDX/GDXJ)
+        yang mencakup ${ticker}, terlepas dari kapan review itu diumumkan
+
+      Aturan umum:
+      - Utamakan berita paling baru yang tersedia, idealnya hari ini (${today})
+      - Jika belum ada berita hari ini, ambil yang paling mendekati
+      - Fokus pada informasi yang relevan dengan pergerakan atau prospek saham ${ticker}
+      - Jangan sebut tanggal spesifik dalam ringkasan, gunakan frasa "berita terbaru"
+      - Isi ringkasan hanya dari data berita saja, TIDAK BOLEH hasil karangan
+      - Tulis ringkasan yang informatif, maksimal 1000 karakter
+
+      Aturan KHUSUS indeks global — ikuti dengan ketat:
+      - HANYA sebut indeks global jika kamu menemukan hasil review atau rebalancing
+        yang secara eksplisit menyebut ${ticker} masuk, keluar, upgrade, downgrade,
+        atau perubahan bobot
+      - Jika tidak menemukan hasil review tersebut, HAPUS seluruh kalimat tentang
+        indeks global dari ringkasan — jangan ganti dengan kalimat "tidak ada perubahan",
+        "belum terdapat laporan", atau kalimat sejenis
 
       Format output:
-			{
-				"news": "ringkasan berita"
-			}
-		`
+      {
+        "news": "ringkasan berita"
+      }
+    `
 
     const response = await this.aiService.generateContent({
       config: {

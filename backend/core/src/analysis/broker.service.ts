@@ -28,10 +28,11 @@ export class BrokerService {
     }
 
     const prompt = `
-      Analisis data broker summary berikut.
+      Analisis data broker summary selama 3 bulan kebelakang berikut.
 			
       Tugas:
       - Ringkas hasil analisis
+      - Sebutkan ini adalah data 3 bulan kebelakang
 
 			Format output:
 			{
