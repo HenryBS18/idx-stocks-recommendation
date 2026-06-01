@@ -12,6 +12,8 @@ export class RedisService {
 
     this.redis = new KeyvRedis(this.env.REDIS_URL)
 
+    if (!this.env.CACHE_ENABLED) return
+
     this.redis.on('connect', () => {
       this.logger.log('Connected')
     })
