@@ -43,7 +43,7 @@ class StockService:
 		with open(file_path, mode='w', newline='', encoding='utf-8') as file:
 			writer = csv.DictWriter(
 				file,
-				fieldnames=['date', 'open', 'close', 'high', 'low', 'volume']
+				fieldnames=['date', 'open', 'high', 'low', 'close', 'volume']
 			)
 
 			writer.writeheader()
@@ -52,9 +52,9 @@ class StockService:
 				writer.writerow({
 					'date': index.strftime('%Y-%m-%d'), # type: ignore
 					'open': normalize_price(row['Open']),
-					'close': normalize_price(row['Close']),
 					'high': normalize_price(row['High']),
 					'low': normalize_price(row['Low']),
+					'close': normalize_price(row['Close']),
 					'volume': int(row['Volume']),
 				})
 
