@@ -80,6 +80,26 @@ class StockService:
 		df = yf_ticker.get_financials(freq='quarterly')
 		df = df.T
 
+		wanted_columns = [
+    'TotalRevenue',
+    'GrossProfit',
+    'OperatingIncome',
+    'EBITDA',
+    'NetIncome',
+    'PretaxIncome',
+    'TaxProvision',
+    'DilutedEPS',
+    'BasicEPS',
+    'InterestExpense',
+    'InterestIncome',
+    'ReconciledDepreciation',
+    'TotalExpenses',
+    'CostOfRevenue',
+		]
+
+		existing_columns = [col for col in wanted_columns if col in df.columns]
+		df = df[existing_columns]
+
 		float_columns = [
 			'BasicEPS',
 			'DilutedEPS',
@@ -116,6 +136,27 @@ class StockService:
 
 		df = yf_ticker.get_balance_sheet(freq='quarterly')
 		df = df.T
+
+		wanted_columns = [
+		'date',
+		'TotalAssets',
+		'TotalLiabilitiesNetMinorityInterest',
+		'StockholdersEquity',
+		'CommonStockEquity',
+		'TotalDebt',
+		'CashAndCashEquivalents',
+		'Receivables',
+		'NetPPE',
+		'RetainedEarnings',
+		'TangibleBookValue',
+		'InvestedCapital',
+		'Payables',
+		'LongTermDebtAndCapitalLeaseObligation',
+		'GoodwillAndOtherIntangibleAssets',
+		]
+
+		existing_columns = [col for col in wanted_columns if col in df.columns]
+		df = df[existing_columns]
 
 		for column in df.columns:
 			df[column] = df[column].fillna(0)
