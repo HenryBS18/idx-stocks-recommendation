@@ -169,7 +169,7 @@ class StockService:
 		return file_path, filename
 
 	def get_broker_summary(self, ticker: str) -> tuple[str, str]:
-		filename = f'{ticker.upper()}broker_summary_{uuid.uuid4()}.csv'
+		filename = f'{ticker.upper()}_broker_summary_{uuid.uuid4()}.csv'
 		file_path = os.path.join(self.dir_name, filename)
 
 		if os.path.exists(file_path):
