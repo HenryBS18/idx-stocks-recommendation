@@ -27,17 +27,35 @@ export class FundamentalService {
     }
 
     const prompt = `
-			Analisis laporan keuangan, neraca keuangan, dan berita berikut.
+			Data berikut adalah laporan keuangan dan neraca keuangan kuartalan selama 4-5 kuartal terakhir.
 
 			Tugas:
-			- Ringkas laporan keuangan
-			- Ringkas neraca keuangan
+			- Analisis tren laporan keuangan antar kuartal (revenue, profitabilitas, beban)
+      - Analisis kesehatan neraca keuangan (likuiditas, solvabilitas, struktur modal)
+      - Hitung rasio keuangan kunci dari data yang tersedia
 
-			Aturan laporan keuangan:
-			- Jika data tidak tersedia maka output "financials": "Data fundamental tidak tersedia saat ini"
+			Aturan analisis laporan keuangan:
+      - Bandingkan tren Revenue, GrossProfit, OperatingIncome, dan NetIncome antar kuartal
+      - Hitung Gross Margin = GrossProfit / TotalRevenue
+      - Hitung Net Margin = NetIncome / TotalRevenue
+      - Sebutkan apakah tren profitabilitas membaik, memburuk, atau stabil
+      - Perhatikan pertumbuhan atau penurunan EPS
 
-			Aturan neraca keuangan:
-			- jika data tidak tersedia maka output "balanceSheet": ""
+      Aturan analisis neraca keuangan:
+      - Hitung Debt-to-Equity = TotalDebt / CommonStockEquity
+      - Hitung Current Ratio jika data memungkinkan
+      - Bandingkan CashAndCashEquivalents vs TotalDebt untuk menilai likuiditas
+      - Perhatikan tren RetainedEarnings sebagai indikator profitabilitas historis
+      - Sebutkan apakah struktur modal tergolong konservatif, moderat, atau agresif
+
+      Aturan fallback:
+      - Jika laporan keuangan tidak tersedia: "financials": "Data laporan keuangan tidak tersedia saat ini"
+      - Jika neraca keuangan tidak tersedia: "balanceSheet": "Data neraca keuangan tidak tersedia saat ini"
+
+      Aturan ringkasan:
+      - Gunakan Bahasa Indonesia yang mudah dipahami oleh investor
+      - Jangan sebut angka mentah — gunakan deskripsi relatif (meningkat X%, margin sehat, dll)
+      - Jika data tidak tersedia atau semua nilai 0/null, output seperti di aturan fallback
 
 			Format output:
 			{
@@ -88,6 +106,8 @@ export class FundamentalService {
           },
         ],
       })
+
+      Logger.debug(`Fundamental Token: ${response.usageMetadata?.totalTokenCount}`, FundamentalService.name)
 
       const fundamentalAnalysis = parseJson<FundamentalAnalysis>(response.text!)
 

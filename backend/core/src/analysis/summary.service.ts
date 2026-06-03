@@ -27,24 +27,31 @@ export class SummaryService {
     }
 
     const prompt = `
-			Analisis hasil ringkasan teknikal, broker summary, laporan keuangan, neraca keuangan, dan berita berikut.
+			Kamu diberikan data berikut:
+      - ringkasan analisis teknikal
+      - ringkasan analisis fundamental
+      - ringkasan analisis broker summary
+      - ringkasan analisis berita
 
 			Tugas:
-			- Buat kesimpulan
-			- Tentukan rekomendasi
+      - Baca dan pahami semua data di atas secara menyeluruh
+			- Buat kesimpulan yang menggabungkan semua aspek (teknikal, fundamental, broker summary, dan berita)
+			- Tentukan rekomendasi akhir
 			
 			Aturan Kesimpulan:
-			- Kesimpulan dari semua data yang diberikan
+			- Sebutkan faktor paling dominan yang mempengaruhi kesimpulan
+      - Jika ada data yang saling bertentangan, sebutkan konfliknya secara singkat
+      - Diakhir Jelaskan mengapa rekomendasinya "Buy" atau "Avoid"
       - Gunakan kalimat yang mudah dimengerti bahkan oleh orang awam
 			
 			Aturan Rekomendasi:
-			- Tentukan berdasarkan semua data yang diberikan
-			- Jika kesimpulannya baik maka output "Buy", jika tidak maka output "Avoid"
+      - "Buy"   → jika mayoritas indikator positif dan risiko terukur
+      - "Avoid" → jika mayoritas indikator negatif atau risiko terlalu tinggi
 
 			Format output:
 			{
-				"summary": "kesimpulan semua aspek sebelumnya",
-				"recommendation": "rekomendasi buy atau avoid"
+				"summary": "kesimpulan disini",
+				"recommendation": "Buy|Avoid"
 			}
 		`
 
@@ -67,6 +74,8 @@ export class SummaryService {
         },
       ],
     })
+
+    Logger.debug(`Summary Token: ${response.usageMetadata?.totalTokenCount}`, SummaryService.name)
 
     const summaryAnalysis = parseJson<SummaryAnalysis>(response.text!)
 

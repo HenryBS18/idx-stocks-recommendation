@@ -28,11 +28,25 @@ export class BrokerService {
     }
 
     const prompt = `
-      Analisis data broker summary selama 3 bulan kebelakang berikut.
+      Data berikut adalah ringkasan aktivitas broker selama 3 bulan terakhir untuk saham ini.
+      Kolom buy side: broker, lot, value, avg price.
+      Kolom sell side: broker, lot, value, avg price.
 			
       Tugas:
-      - Ringkas hasil analisis
-      - Sebutkan ini adalah data 3 bulan kebelakang
+      - Identifikasi siapa broker paling dominan di sisi beli dan jual
+      - Tentukan apakah terjadi akumulasi atau distribusi secara keseluruhan
+      - Deteksi pola penting (misalnya: broker asing dominan beli, broker lokal dominan jual, atau sebaliknya)
+      - Buat ringkasan yang mudah dipahami investor
+
+      Aturan analisis:
+      - Bandingkan total buy_value vs total sell_value untuk menentukan tekanan dominan
+      - Broker dengan kode 2 huruf kapital umumnya broker asing (contoh: CS, MS, DB, JP) — sebutkan jika ada dominasi asing
+      - Perhatikan buy_avg vs sell_avg: jika buy_avg > sell_avg artinya ada yang beli di harga lebih tinggi (agresif beli)
+      - Fokus pada 3-5 broker paling aktif saja, abaikan yang nilainya kecil
+
+      Aturan ringkasan:
+      - Wajib menyebutkan: dominasi arah (akumulasi/distribusi), broker paling aktif, dan implikasinya terhadap harga
+      - Jangan sebutkan angka mentah, gunakan deskripsi relatif (misalnya "signifikan", "dominan", "moderat")
 
 			Format output:
 			{
@@ -64,6 +78,8 @@ export class BrokerService {
           },
         ],
       })
+
+      Logger.debug(`Broker Token: ${response.usageMetadata?.totalTokenCount}`, BrokerService.name)
 
       const brokerAnalysis = parseJson<BrokerAnalysis>(response.text!)
 

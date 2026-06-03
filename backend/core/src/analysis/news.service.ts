@@ -79,6 +79,8 @@ export class NewsService {
       ],
     })
 
+    Logger.debug(`News Token: ${response.usageMetadata?.totalTokenCount}`, NewsService.name)
+
     const newsAnalysis = parseJson<NewsAnalysis>(response.text!)
 
     if (this.env.CACHE_ENABLED) await this.cacheManager.set(cacheKey, newsAnalysis, CACHE_TTL)

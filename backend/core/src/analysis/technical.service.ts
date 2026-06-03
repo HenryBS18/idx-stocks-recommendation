@@ -27,31 +27,30 @@ export class TechnicalService {
 		}
 
 		const prompt = `
-			Analisis data historis harga berikut.
+			Data yang diberikan adalah data OHLCV harian selama tiga bulan terakhir dengan kolom: Date, Open, High, Low, Close, Volume.
 
 			Tugas:
-			- Tentukan tren harga
-			- Cari support dan resistance
-			- Ringkas penjelasan teknikal
+			- Tentukan tren harga dominan
+			- Identifikasi level support dan resistance yang valid
+			- Buat ringkasan teknikal
 
 			Aturan tren harga:
-			- Tentukan berdasarkan pergerakan harga
-			- Jika pergerakan harga cenderung naik maka output "Bullish", jika tidak maka output "Bearish"
+			- Analisis berdasarkan struktur higher high/higher low atau lower high/lower low
+			- Pertimbangkan posisi harga terhadap moving average 20 dan 50 periode
+			- Output: "Bullish" jika tren naik, "Bearish" jika tren turun, "Sideways" jika ranging
 
 			Aturan support & resistance:
-			- Support harus <= harga terakhir
-			- Support harus >= harga terendah
-			- Resistance harus >= harga terakhir
-			- Resistance harus <= harga tertinggi
-			- Maksimal 3 support
-			- Maksimal 3 resistance
-			- Jarak antar range minimal 3%
-			- Gunakan format: "1000 - 1050"
-			- Urutkan dari harga terendah ke tertinggi
+			- Tentukan berdasarkan swing high/low yang telah diuji minimal 2 kali
+			- Support: harga <= harga terakhir, >= harga terendah keseluruhan
+			- Resistance: harga >= harga terakhir, <= harga tertinggi keseluruhan
+			- Maksimal 3 support, maksimal 3 resistance
+			- Jarak antar level minimal 3%
+			- Format range: "1000 - 1050" (gunakan angka bulat, tanpa desimal)
+			- Urutkan dari nilai terendah ke tertinggi
 
 			Format output:
 			{
-				"trend": "tren",
+				"trend": "Bullish|Sideways|Bearish",
 				"support": [
 					"1000 - 1050"
 				],
@@ -89,6 +88,8 @@ export class TechnicalService {
 					},
 				],
 			})
+
+			Logger.debug(`Technical Token: ${response.usageMetadata?.totalTokenCount}`, TechnicalService.name)
 
 			const technicalAnalysis = parseJson<TechnicalAnalysis>(response.text!)
 
