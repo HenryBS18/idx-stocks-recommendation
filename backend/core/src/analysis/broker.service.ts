@@ -40,7 +40,9 @@ export class BrokerService {
 
       Aturan analisis:
       - Bandingkan total buy_value vs total sell_value untuk menentukan tekanan dominan
-      - Broker dengan kode 2 huruf kapital umumnya broker asing (contoh: CS, MS, DB, JP) — sebutkan jika ada dominasi asing
+      - Asing umumnya menggunakan broker dengan kode: AK, BK, ZP, RX, YU, CC, KZ, CS — sebutkan jika ada dominasi asing
+      - Institusi umumnya menggunakan broker dengan kode: LG, PD, BB, AZ, OD, DX, HP, KI, NI, RB, SQ, RF — sebutkan jika ada dominasi institusi
+      - Ritel umumnya menggunakan broker dengan kode: XL, XC, PD, YP — sebutkan jika ada dominasi ritel
       - Perhatikan buy_avg vs sell_avg: jika buy_avg > sell_avg artinya ada yang beli di harga lebih tinggi (agresif beli)
       - Fokus pada 3-5 broker paling aktif saja, abaikan yang nilainya kecil
 
