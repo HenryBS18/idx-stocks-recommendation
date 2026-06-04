@@ -7,6 +7,7 @@ import csv
 import os
 import requests
 import uuid
+import pandas as pd
 
 class StockService:
 	def __init__(self):
@@ -55,13 +56,12 @@ class StockService:
 					'high': normalize_price(row['High']),
 					'low': normalize_price(row['Low']),
 					'close': normalize_price(row['Close']),
-					'volume': int(row['Volume']),
+					'volume': 0 if pd.isna(row['Volume']) else int(row['Volume'])
 				})
 
 		delete_file_later(file_path)
 
 		return file_path, filename
-
 
 	def get_financials(self, ticker: str) -> tuple[str, str]:
 		filename = f'{ticker.upper()}_financials_{uuid.uuid4()}.csv'
@@ -118,7 +118,6 @@ class StockService:
 		delete_file_later(file_path)
 
 		return file_path, filename
-
 
 	def get_balance_sheet(self, ticker: str) -> tuple[str, str]:
 		filename = f'{ticker.upper()}_balance_sheet_{uuid.uuid4()}.csv'
