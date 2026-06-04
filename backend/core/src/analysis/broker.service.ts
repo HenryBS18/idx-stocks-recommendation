@@ -1,7 +1,6 @@
-
-import { CACHE_TTL } from '@app/constants'
 import { BrokerAnalysis } from '@app/types'
 import { getCsv, parseJson } from '@app/utils'
+import { cacheTTL } from '@app/utils/cache-ttl'
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager'
 import { Inject, Injectable, Logger } from '@nestjs/common'
 import { unlink } from 'fs/promises'
@@ -85,7 +84,7 @@ export class BrokerService {
 
       const brokerAnalysis = parseJson<BrokerAnalysis>(response.text!)
 
-      if (this.env.CACHE_ENABLED) await this.cacheManager.set(cacheKey, brokerAnalysis, CACHE_TTL)
+      if (this.env.CACHE_ENABLED) await this.cacheManager.set(cacheKey, brokerAnalysis, cacheTTL())
 
       return brokerAnalysis
     } finally {

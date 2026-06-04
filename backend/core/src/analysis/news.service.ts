@@ -1,6 +1,6 @@
-import { CACHE_TTL } from '@app/constants'
 import { NewsAnalysis } from '@app/types'
 import { parseJson } from '@app/utils'
+import { cacheTTL } from '@app/utils/cache-ttl'
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager'
 import { Inject, Injectable, Logger } from '@nestjs/common'
 import { AiService } from 'src/ai/ai.service'
@@ -83,7 +83,7 @@ export class NewsService {
 
     const newsAnalysis = parseJson<NewsAnalysis>(response.text!)
 
-    if (this.env.CACHE_ENABLED) await this.cacheManager.set(cacheKey, newsAnalysis, CACHE_TTL)
+    if (this.env.CACHE_ENABLED) await this.cacheManager.set(cacheKey, newsAnalysis, cacheTTL())
 
     return newsAnalysis
   }
