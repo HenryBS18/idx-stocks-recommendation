@@ -39,7 +39,7 @@ export class StockService {
 			const stockNameResponse = await fetch(`${this.env.STOCK_DATA_API_URL}/stock/${ticker}/name`)
 			const data = await stockNameResponse.json()
 
-			if (!stockNameResponse.ok) throw new NotFoundError(data.message)
+			if (!stockNameResponse.ok) throw new NotFoundError('Kode saham tidak ditemukan')
 
 			const [technical, broker, fundamental, news] = await Promise.all([
 				this.technicalService.getAnalysis(ticker),
