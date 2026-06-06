@@ -1,4 +1,4 @@
-import { NotFoundError, ParseJsonError } from '@app/errors'
+import { NotFoundError } from '@app/errors'
 import { Controller, Get, InternalServerErrorException, NotFoundException, Param } from '@nestjs/common'
 import { StockService } from './stock.service'
 
@@ -11,12 +11,6 @@ export class StockController {
 		try {
 			return await this.stockService.analyze(ticker)
 		} catch (error) {
-			if (error instanceof ParseJsonError) {
-				throw new NotFoundException({
-					message: 'Something went wrong.'
-				})
-			}
-
 			if (error instanceof NotFoundError) {
 				throw new NotFoundException({
 					message: error.message
@@ -25,7 +19,7 @@ export class StockController {
 
 			if (error instanceof Error) {
 				throw new InternalServerErrorException({
-					message: error.message
+					message: 'Terjadi kesalahan di server'
 				})
 			}
 		}
