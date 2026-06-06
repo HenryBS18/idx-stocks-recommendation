@@ -13,12 +13,15 @@ export default function Home() {
     try {
       const finalTicker = selectedTicker || ticker
 
-      if (!finalTicker) return
-
       setStatus("loading")
       setErrorMessage("")
       setData(undefined)
       setTicker(finalTicker)
+
+      await new Promise(resolve => setTimeout(resolve, 200))
+
+      if (!finalTicker) throw new Error('Kode saham tidak boleh kosong')
+      if (finalTicker.length < 4) throw new Error('Kode saham harus 4 karakter')
 
       const response = await fetch(`/api/stock`, {
         method: "POST",
@@ -47,7 +50,7 @@ export default function Home() {
       if (error instanceof Error) {
         setErrorMessage(error.message)
       } else {
-        setErrorMessage("Something went wrong")
+        setErrorMessage("Terjadi kesalahan di server")
       }
     }
   }
@@ -67,9 +70,11 @@ export default function Home() {
         <div className="flex gap-2">
           <input
             value={ticker}
-            onChange={(e) => setTicker(e.target.value.toUpperCase())}
+            onChange={(e) => setTicker(e.target.value.toUpperCase().replace(/[^A-Za-z\s]/g, ''))}
             onKeyDown={(e) => e.key === "Enter" && handleAnalyze()}
             placeholder="BBCA, TLKM..."
+            inputMode='text'
+            type='text'
             maxLength={4}
             disabled={status === "loading"}
             className="flex-1 px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-sm outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
@@ -141,7 +146,7 @@ export default function Home() {
           </div>
 
           <h2 className="text-lg font-semibold mb-2">
-            Failed to Analyze
+            Analisa Gagal
           </h2>
 
           <p className="text-sm text-slate-400 mb-6">
@@ -152,7 +157,7 @@ export default function Home() {
             onClick={() => handleAnalyze()}
             className="px-4 py-3 rounded-xl bg-blue-600 text-sm font-medium hover:bg-blue-500 transition-colors cursor-pointer"
           >
-            Try Again
+            Coba Lagi
           </button>
         </div>
       )}
