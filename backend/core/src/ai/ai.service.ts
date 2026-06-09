@@ -32,15 +32,6 @@ export class AiService {
         },
 
       })
-    } catch (error) {
-      let errorMessage = ''
-
-      if (error instanceof Error) {
-        if (error.message.toLowerCase().includes('high demand')) errorMessage = 'AI model is currently unavailable'
-        else if (error.name === 'AbortError') errorMessage = 'Request timeout'
-      }
-
-      throw new Error(errorMessage)
     } finally {
       clearTimeout(timeout)
     }
