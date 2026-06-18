@@ -15,7 +15,9 @@ def get_price_historical_route(ticker):
 			download_name=filename,
 			mimetype='text/csv'
 		)
-	except Exception:
+	except Exception as e:
+		print(f'ERROR [{get_price_historical_route.__name__}] {e}')
+		
 		return {'message': f'{ticker} not found'}, 404
 
 @api.get('/stock/<ticker>/financials')
@@ -29,7 +31,9 @@ def get_financials_route(ticker: str):
 			download_name=filename,
 			mimetype='text/csv'
 		)
-	except Exception:
+	except Exception as e:
+		print(f'ERROR [{get_financials_route.__name__}] {e}')
+		
 		return {'message': f'{ticker} not found'}, 404
 
 @api.get('/stock/<ticker>/balance-sheet')
@@ -43,7 +47,9 @@ def get_balance_sheet_route(ticker: str):
 			download_name=filename,
 			mimetype='text/csv'
 		)
-	except Exception:
+	except Exception as e:
+		print(f'ERROR [{get_balance_sheet_route.__name__}] {e}')
+		
 		return {'message': f'{ticker} not found'}, 404
 
 @api.get('/stock/<ticker>/broker-summary')
@@ -57,14 +63,19 @@ def get_broker_summary_route(ticker: str):
 			download_name=filename,
 			mimetype='text/csv'
 		)
-	except Exception:
+	except Exception as e:
+		print(f'ERROR [{get_broker_summary_route.__name__}] {e}')
+		
 		return {'message': f'{ticker} not found'}, 404
 
 @api.get('/stock/<ticker>/name')
 def get_name_route(ticker: str):
-	name = stock_service.get_name(ticker)
+	try:
+		name = stock_service.get_name(ticker)
 
-	if name == None:
-		return {'message': f'{ticker} not found'}, 404
-	
-	return {'name': name}
+		if name == None:
+			return {'message': f'{ticker} not found'}, 404
+		
+		return {'name': name}
+	except Exception as e:
+		print(f'ERROR [{get_name_route.__name__}] {e}')

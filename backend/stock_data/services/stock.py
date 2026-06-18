@@ -55,7 +55,7 @@ class StockService:
 					'open': normalize_price(row['Open']),
 					'high': normalize_price(row['High']),
 					'low': normalize_price(row['Low']),
-					'close': normalize_price(row['Close']),
+					'close': normalize_price(row['High']) if pd.isna(row['Close']) else normalize_price(row['Close']),
 					'volume': 0 if pd.isna(row['Volume']) else int(row['Volume'])
 				})
 
