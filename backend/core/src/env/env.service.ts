@@ -1,3 +1,4 @@
+import { CacheDriver } from '@app/types'
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 
@@ -11,6 +12,7 @@ export class EnvService {
   private readonly redisPort: number
   private readonly redisUser: string
   private readonly redisPassword: string
+  private readonly cacheDriver: CacheDriver
 
   constructor(private readonly configService: ConfigService) {
     this.geminiApiKey = this.configService.getOrThrow('GEMINI_API_KEY')
@@ -21,6 +23,7 @@ export class EnvService {
     this.redisPort = parseInt(this.configService.getOrThrow('REDIS_PORT'))
     this.redisUser = this.configService.getOrThrow('REDIS_USER')
     this.redisPassword = this.configService.getOrThrow('REDIS_PASSWORD')
+    this.cacheDriver = this.configService.getOrThrow('CACHE_DRIVER')
   }
 
   get GEMINI_API_KEY(): string {
@@ -41,5 +44,9 @@ export class EnvService {
 
   get REDIS_URL(): string {
     return `redis://${this.redisUser}:${this.redisPassword}@${this.redisHost}:${this.redisPort}`
+  }
+
+  get CACHE_DRIVER(): CacheDriver {
+    return this.cacheDriver
   }
 }

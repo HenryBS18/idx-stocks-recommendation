@@ -49,3 +49,5 @@ export type AnalysisResult = StockLatestPriceDate & BrokerAnalysis & Fundamental
   ticker: string
   name: string
 }
+
+export type CacheDriver = 'memory' | 'redis'
