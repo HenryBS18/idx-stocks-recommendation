@@ -49,14 +49,23 @@ class StockService:
 
 			writer.writeheader()
 
-			for index, row in df.iterrows():
+			for i, (index, row) in enumerate(df.iterrows()):
+				volume = row['Volume']
+
+				if pd.isna(volume) or volume == 0:
+					if i > 0:
+						volume = df.iloc[i - 1]['Volume']
+
+					if (pd.isna(volume) or volume == 0) and i < len(df) - 1:
+						volume = df.iloc[i + 1]['Volume']
+
 				writer.writerow({
-					'date': index.strftime('%Y-%m-%d'), # type: ignore
+					'date': index.strftime('%Y-%m-%d'),
 					'open': normalize_price(row['Open']),
 					'high': normalize_price(row['High']),
 					'low': normalize_price(row['Low']),
-					'close': normalize_price(row['High']) if pd.isna(row['Close']) else normalize_price(row['Close']),
-					'volume': 0 if pd.isna(row['Volume']) else int(row['Volume'])
+					'close': normalize_price(row['Close']) if not pd.isna(row['Close']) else normalize_price(row['High']),
+					'volume': int(volume) if not pd.isna(volume) else 0
 				})
 
 		delete_file_later(file_path)
