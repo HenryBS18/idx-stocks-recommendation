@@ -1,5 +1,4 @@
-import { NewsAnalysis } from '@app/types'
-import { parseJson } from '@app/utils'
+import { NewsAnalysisResult } from '@app/types'
 import { cacheTTL } from '@app/utils/cache-ttl'
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager'
 import { Inject, Injectable, Logger } from '@nestjs/common'
@@ -15,13 +14,13 @@ export class NewsService {
     private readonly env: EnvService,
   ) { }
 
-  async getAnalysis(ticker: string): Promise<NewsAnalysis> {
+  async getAnalysis(ticker: string): Promise<NewsAnalysisResult> {
     Logger.debug('Hit', NewsService.name)
 
     const cacheKey = `${ticker}-news`
 
     if (this.env.CACHE_ENABLED) {
-      const cachedNewsAnalysis = await this.cacheManager.get<NewsAnalysis>(cacheKey)
+      const cachedNewsAnalysis = await this.cacheManager.get<NewsAnalysisResult>(cacheKey)
       if (cachedNewsAnalysis) return cachedNewsAnalysis
     }
 
@@ -58,14 +57,16 @@ export class NewsService {
         "belum terdapat laporan", atau kalimat sejenis
 
       Format output:
-      {
-        "news": "ringkasan berita"
-      }
+      Tuliskan ringkasan berita secara naratif langsung dalam bentuk paragraf teks biasa. Jangan gunakan format JSON atau markdown aneh.
     `
 
     const response = await this.aiService.generateContent({
       config: {
         responseMimeType: 'text/plain',
+        systemInstruction: `
+          Kamu dilarang keras menjawab menggunakan pengetahuan internal kamu sendiri. 
+          Kamu DIWAJIBKAN untuk melakukan pencarian web secara langsung (live web search) untuk menemukan informasi terkini, berita terbaru, dan data valid terkait permintaan pengguna di bawah ini.
+        `,
         tools: [
           {
             googleSearch: {},
@@ -79,12 +80,44 @@ export class NewsService {
       ],
     })
 
+    const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || []
+    Logger.debug(response.candidates)
+
+    const cleanChunks: string[] = (
+      await Promise.all(
+        chunks.map(async (chunk) => {
+          if (chunk.web?.uri) {
+            return await this.resolveRealUrl(chunk.web.uri)
+          }
+          return null
+        })
+      )
+    ).filter((url): url is string => url !== null)
+
+
     Logger.debug(`News Token: ${response.usageMetadata?.totalTokenCount}`, NewsService.name)
 
-    const newsAnalysis = parseJson<NewsAnalysis>(response.text!)
+    const newsAnalysis = {
+      news: response.text!,
+      sources: cleanChunks
+    }
 
     if (this.env.CACHE_ENABLED) await this.cacheManager.set(cacheKey, newsAnalysis, cacheTTL())
 
     return newsAnalysis
+  }
+
+  private async resolveRealUrl(redirectUrl: string): Promise<string> {
+    try {
+      const response = await fetch(redirectUrl, {
+        method: 'HEAD',
+        redirect: 'manual'
+      })
+
+      return response.headers.get('location') || redirectUrl
+    } catch (error) {
+      console.error("Failed to resolve URL:", error)
+      return redirectUrl
+    }
   }
 }

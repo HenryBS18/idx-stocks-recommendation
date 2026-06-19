@@ -48,7 +48,7 @@ export class StockService {
 				this.newsService.getAnalysis(ticker)
 			])
 
-			const summary = await this.summaryService.getAnalysis({ ticker, technical, broker, fundamental, news })
+			const summary = await this.summaryService.getAnalysis({ ticker, technical, broker, fundamental, news: { news: news.news } })
 
 			const returnData: AnalysisResult = {
 				ticker,
@@ -56,7 +56,10 @@ export class StockService {
 				...technical,
 				...broker,
 				...fundamental,
-				...news,
+				news: {
+					text: news.news,
+					sources: news.sources
+				},
 				...summary,
 			}
 

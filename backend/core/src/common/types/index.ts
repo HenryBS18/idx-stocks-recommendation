@@ -25,6 +25,10 @@ export type NewsAnalysis = {
   news: string
 }
 
+export type NewsAnalysisResult = NewsAnalysis & {
+  sources: string[]
+}
+
 export type TechnicalAnalysis = StockLatestPriceDate & {
   trend: string
   support: string[]
@@ -45,9 +49,24 @@ export type GetSummaryParams = {
   news: NewsAnalysis
 }
 
-export type AnalysisResult = StockLatestPriceDate & BrokerAnalysis & FundamentalAnalysis & NewsAnalysis & TechnicalAnalysis & SummaryAnalysis & {
+export type AnalysisResult = {
   ticker: string
   name: string
+  latestDate: string
+  latestPrice: number
+  brokerSummary: string
+  financials: string
+  balanceSheet: string
+  news: {
+    text: string
+    sources: string[]
+  }
+  trend: string
+  support: string[]
+  resistance: string[]
+  technical: string
+  summary: string
+  recommendation: string
 }
 
 export type CacheDriver = 'memory' | 'redis'
