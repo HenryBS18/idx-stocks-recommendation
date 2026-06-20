@@ -15,7 +15,7 @@ class StockService:
 
 		os.makedirs(self.dir_name, exist_ok=True)
 
-	def get_price_historical(self, ticker: str) -> tuple[str, str]:
+	def get_price_historical(self, ticker: str, timeframe: str) -> tuple[str, str]:
 		filename = f'{ticker.upper()}_price_historical_{uuid.uuid4()}.csv'
 		file_path = os.path.join(self.dir_name, filename)
 
@@ -30,7 +30,7 @@ class StockService:
 		yf_ticker = yf.Ticker(f'{ticker.upper()}.JK')
 
 		end_date = datetime.now() + timedelta(days=1)
-		start_date = end_date - timedelta(days=90)
+		start_date = end_date - timedelta(days=90 if timeframe == 'short' else 1820)
 
 		df = yf_ticker.history(
 			start=start_date.strftime('%Y-%m-%d'),
@@ -148,7 +148,7 @@ class StockService:
 		wanted_columns = [
 		'date',
 		'TotalAssets',
-		'TotalLiabilitiesNetMinorityInterest',
+		'TotiabilitiesNetMinorityInterest',
 		'StockholdersEquity',
 		'CommonStockEquity',
 		'TotalDebt',
@@ -159,7 +159,7 @@ class StockService:
 		'TangibleBookValue',
 		'InvestedCapital',
 		'Payables',
-		'LongTermDebtAndCapitalLeaseObligation',
+		'LongTermDebtAndCapiteaseObligation',
 		'GoodwillAndOtherIntangibleAssets',
 		]
 
@@ -188,43 +188,7 @@ class StockService:
 		if ticker_valid == None:
 			raise Exception
 
-		url = os.getenv('NEOBDM_URL')
-		session_id = os.getenv('NEOBDM_SESSIONID')
-		csrf_token = os.getenv('NEOBDM_CSRF_TOKEN')
-		csrf_middleware_token = os.getenv('NEOBDM_CSRF_MIDDLEWARE_TOKEN')
-
-		end_date = datetime.now() + timedelta(days=1)
-		start_date = end_date - timedelta(days=90)
-
-		data = {
-			'tick': ticker,
-			'start_date': start_date.strftime('%d %b %Y'),
-			'end_date': end_date.strftime('%d %b %Y'),
-			'event': 'load',
-			'foreign_only': 'false',
-			'domestic_only': 'false',
-			'net': 'true',
-			'show_broker_inventory': 'false',
-			'csrfmiddlewaretoken': csrf_middleware_token,
-		}
-
-		headers = {
-			'Referer': url
-		}
-
-		cookies = {
-			'sessionid': session_id,
-			'csrftoken': csrf_token,
-		}
-
-		res = requests.post(
-			url,
-			data=data,
-			headers=headers,
-			cookies=cookies
-		)
-
-		broksum_html_str = res.json()['broksum_html']
+		broksum_html_str = self.get_broker_summary_raw(ticker)['broksum']
 
 		soup = BeautifulSoup(broksum_html_str, 'html.parser')
 		rows = soup.select('tbody tr')
@@ -274,6 +238,50 @@ class StockService:
 		delete_file_later(file_path)
 
 		return file_path, filename
+	
+	def get_broker_summary_raw(self, ticker: str) -> dict[str, str]:
+		url = os.getenv('NEOBDM_URL')
+		session_id = os.getenv('NEOBDM_SESSIONID')
+		csrf_token = os.getenv('NEOBDM_CSRF_TOKEN')
+		csrf_middleware_token = os.getenv('NEOBDM_CSRF_MIDDLEWARE_TOKEN')
+
+		end_date = datetime.now() + timedelta(days=1)
+		start_date = end_date - timedelta(days=90)
+
+		data = {
+			'tick': ticker,
+			'start_date': start_date.strftime('%d %b %Y'),
+			'end_date': end_date.strftime('%d %b %Y'),
+			'event': 'load',
+			'foreign_only': 'false',
+			'domestic_only': 'false',
+			'net': 'true',
+			'show_broker_inventory': 'false',
+			'csrfmiddlewaretoken': csrf_middleware_token,
+		}
+
+		headers = {
+			'Referer': url
+		}
+
+		cookies = {
+			'sessionid': session_id,
+			'csrftoken': csrf_token,
+		}
+
+		res = requests.post(
+			url,
+			data=data,
+			headers=headers,
+			cookies=cookies
+		)
+
+		broksum_html_str = res.json()['broksum_html']
+
+		return {
+			'date': f"{start_date.strftime('%d %b %Y')} - {end_date.strftime('%d %b %Y')} (3 bulan)",
+			'broksum': str(broksum_html_str).replace('\n', '').replace('        ', '').replace('    ', '').replace('<form id=\"broksum-form\" method=\"post\">', '').replace('</form>', '').replace('w-100', 'w-full sm:w-110').replace('text-green', 'text-green-600 text-xs pb-3 sm:text-sm').replace('text-red', 'text-red-600 text-xs pb-3 sm:text-sm').replace('pr-1', 'pr-2').replace('text-sm', 'text-xs sm:text-sm'),
+		}
 
 	def get_name(self, ticker: str) -> str:
 		url = os.getenv('IDX_OWNERSHIP_API_URL')
