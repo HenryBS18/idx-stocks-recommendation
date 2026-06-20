@@ -59,7 +59,6 @@ export type Financials = {
   "EBITDA": string
   "Laba Bersih": string
   "Laba Sebelum Pajak": string
-  "Penyisihan Pajak": string
   "Beban Operasional": string
   "Beban Bunga": string
   "Pendapatan Bunga": string
@@ -77,7 +76,6 @@ export type BalanceSheet = {
   "Piutang Usaha": string
   "Aset Tetap Bersih": string
   "Total Liabilitas": string
-  "Utang Usaha": string
   "Total Ekuitas": string
   "Saldo Laba": string
 }

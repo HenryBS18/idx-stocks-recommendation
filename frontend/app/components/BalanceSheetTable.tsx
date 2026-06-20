@@ -14,7 +14,6 @@ export default function BalanceSheetTable({ balanceSheet }: BalanceSheetTablePro
     "Kas dan Setara Kas",
     "Piutang Usaha",
     "Aset Tetap Bersih",
-    "Utang Usaha",
     "Saldo Laba"
   ]
 

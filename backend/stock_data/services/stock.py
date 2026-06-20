@@ -110,12 +110,9 @@ class StockService:
 			'EBITDA',
 			'NetIncome',
 			'PretaxIncome',
-			'TaxProvision',
 			'OperatingExpense',
 			'InterestExpense',
 			'InterestIncome',
-			'TotalExpenses',
-			'CostOfRevenue',
 		]
 
 		existing_columns = [col for col in wanted_columns if col in df.columns]
@@ -127,12 +124,9 @@ class StockService:
 				'EBITDA': 'EBITDA',
 				'NetIncome': 'Laba Bersih',
 				'PretaxIncome': 'Laba Sebelum Pajak',
-				'TaxProvision': 'Penyisihan Pajak',
 				'OperatingExpense': 'Beban Operasional',
 				'InterestExpense': 'Beban Bunga',
 				'InterestIncome': 'Pendapatan Bunga',
-				'TotalExpenses': 'Total Beban',
-				'CostOfRevenue': 'Beban Pokok Pendapatan',
 		}
 
 		df_metrics = df_metrics.rename(columns=rename_columns)
@@ -198,10 +192,7 @@ class StockService:
 			'CashAndCashEquivalents', 
 			'Receivables', 
 			'NetPPE',
-			'GoodwillAndOtherIntangibleAssets', 
 			'TotalLiabilitiesNetMinorityInterest',
-			'TotalDebt', 
-			'AccountsPayable', 
 			'StockholdersEquity', 
 			'RetainedEarnings',
 		]
@@ -222,10 +213,7 @@ class StockService:
 			'CashAndCashEquivalents': 'Kas dan Setara Kas',
 			'Receivables': 'Piutang Usaha',
 			'NetPPE': 'Aset Tetap Bersih',
-			'GoodwillAndOtherIntangibleAssets': 'Goodwill dan Aset Takberwujud',
 			'TotalLiabilitiesNetMinorityInterest': 'Total Liabilitas',
-			'TotalDebt': 'Total Utang Berbunga',
-			'AccountsPayable': 'Utang Usaha',
 			'StockholdersEquity': 'Total Ekuitas',
 			'RetainedEarnings': 'Saldo Laba',
 		}

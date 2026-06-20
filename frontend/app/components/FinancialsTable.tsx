@@ -9,7 +9,6 @@ export default function FinancialTable({ financials }: FinancialTableProps) {
     "Laba Operasional",
     "EBITDA",
     "Laba Sebelum Pajak",
-    "Penyisihan Pajak",
     "Pendapatan Bunga",
     "Beban Bunga",
     "NPM",
