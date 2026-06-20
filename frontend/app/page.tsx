@@ -1,6 +1,8 @@
 "use client"
 
 import { useState } from "react"
+import ErrorState from './components/ErrorState'
+import LoadingState from './components/LoadingState'
 import { AnalyzeResponse, Status } from './types'
 
 export default function Home() {
@@ -108,59 +110,8 @@ export default function Home() {
         </div>
       )}
 
-      {status === "loading" && (
-        <div className="space-y-4 animate-pulse">
-          <p className="text-sm text-blue-400">
-            Analyzing market data...
-          </p>
-
-          <div className="rounded-2xl bg-slate-900 border border-slate-800 p-4">
-            <div className="flex justify-between mb-4">
-              <div>
-                <div className="h-4 w-20 bg-slate-800 rounded mb-2"></div>
-                <div className="h-3 w-32 bg-slate-800 rounded"></div>
-              </div>
-              <div className="h-6 w-14 bg-slate-800 rounded-full"></div>
-            </div>
-
-            <div className="mb-4">
-              <div className="h-3 w-24 bg-slate-800 rounded mb-2"></div>
-              <div className="h-2 w-full bg-slate-800 rounded"></div>
-            </div>
-
-            <div className="space-y-2">
-              <div className="h-3 w-full bg-slate-800 rounded"></div>
-              <div className="h-3 w-5/6 bg-slate-800 rounded"></div>
-              <div className="h-3 w-4/6 bg-slate-800 rounded"></div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {status === "error" && (
-        <div className="rounded-2xl bg-slate-900 border border-red-500/20 p-6 text-center">
-          <div className="mb-4">
-            <div className="w-14 h-14 mx-auto rounded-full bg-red-500/10 flex items-center justify-center text-2xl">
-              ⚠️
-            </div>
-          </div>
-
-          <h2 className="text-lg font-semibold mb-2">
-            Analisa Gagal
-          </h2>
-
-          <p className="text-sm text-slate-400 mb-6">
-            {errorMessage}
-          </p>
-
-          <button
-            onClick={() => handleAnalyze()}
-            className="px-4 py-3 rounded-xl bg-blue-600 text-sm font-medium hover:bg-blue-500 transition-colors cursor-pointer"
-          >
-            Coba Lagi
-          </button>
-        </div>
-      )}
+      {status === "loading" && (<LoadingState />)}
+      {status === "error" && (<ErrorState errorMessage={errorMessage} handleAnalyze={handleAnalyze} />)}
 
       {status === "done" && (
         <div className="space-y-4 transition-opacity duration-300">

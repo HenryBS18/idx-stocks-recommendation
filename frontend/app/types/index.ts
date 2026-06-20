@@ -16,3 +16,13 @@ export type AnalyzeResponse = {
   summary: string
   recommendation: string
 }
+
+export type ErrorStateProps = {
+  errorMessage: string
+  handleAnalyze: () => void
+}
+
+export type StockList = {
+  ticker: string
+  name: string
+}[]
