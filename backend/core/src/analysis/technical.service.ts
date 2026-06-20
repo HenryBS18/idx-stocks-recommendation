@@ -91,14 +91,14 @@ export class TechnicalService {
 
 			Logger.debug(`Technical Token: ${response.usageMetadata?.totalTokenCount}`, TechnicalService.name)
 
-			const technicalAnalysis = parseJson<TechnicalAnalysis>(response.text!)
+			const technicalAnalysis = {
+				...stockLatestPriceDate,
+				...parseJson<TechnicalAnalysis>(response.text!)
+			}
 
 			if (this.env.CACHE_ENABLED) await this.cacheManager.set(cacheKey, technicalAnalysis, cacheTTL())
 
-			return {
-				...stockLatestPriceDate,
-				...technicalAnalysis
-			}
+			return technicalAnalysis
 		} finally {
 			await unlink(priceHistoricalFilePath)
 		}
