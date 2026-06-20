@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import ErrorState from './components/ErrorState'
 import LoadingState from './components/LoadingState'
 import StockChart from './components/StockChart'
-import { AnalyzeResponse, Status, StockList } from './types'
+import { AnalyzeResponse, Broksum, Status, StockList } from './types'
 
 export default function Home() {
   const [ticker, setTicker] = useState("")
@@ -14,6 +14,7 @@ export default function Home() {
   const [search, setSearch] = useState("")
   const [stockList, setStockList] = useState<StockList>([])
   const [showDropdown, setShowDropdown] = useState(false)
+  const [broksum, setBroksum] = useState<Broksum | null>(null)
 
   const handleAnalyze = async (selectedTicker?: string) => {
     try {
@@ -79,6 +80,16 @@ export default function Home() {
 
     fetchStockList()
   }, [])
+
+  useEffect(() => {
+    const fetchBroksum = async () => {
+      const response = await fetch(`/api/stock/${ticker}/broksum`)
+      const result = await response.json() as Broksum
+      setBroksum(result)
+    }
+
+    fetchBroksum()
+  }, [ticker])
 
   return (
     <main className="min-h-screen bg-slate-950 text-white px-4 py-6 mx-auto">
@@ -225,6 +236,16 @@ export default function Home() {
 
             <div className="mb-3">
               <h2 className='text-xl'>Bandarmologi</h2>
+
+              {broksum && (
+                <div className='border border-gray-500 rounded-lg w-fit px-3 pt-2 mt-1 mb-2'>
+                  <span className='text-sm text-slate-300'>Broker Summary | </span>
+                  <span className='text-sm text-slate-300'>{broksum.date}</span>
+
+                  <div className='w-full h-[0.5px] bg-gray-500' />
+                  <div className='mt-2' dangerouslySetInnerHTML={{ __html: broksum.broksum }} />
+                </div>
+              )}
 
               <p className='text-slate-300'>{data?.brokerSummary}</p>
             </div>

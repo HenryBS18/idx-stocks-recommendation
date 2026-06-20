@@ -41,3 +41,8 @@ export type StockChartProps = {
   support?: string[]
   resistance?: string[]
 }
+
+export type Broksum = {
+  date: string
+  broksum: string
+}
