@@ -2,10 +2,12 @@
 
 import Link from 'next/link'
 import { useEffect, useState } from "react"
+import BalanceSheetTable from './components/BalanceSheetTable'
 import ErrorState from './components/ErrorState'
+import FinancialTable from './components/FinancialsTable'
 import LoadingState from './components/LoadingState'
 import StockChart from './components/StockChart'
-import { AnalyzeResponse, Broksum, Status, StockList } from './types'
+import { AnalyzeResponse, BalanceSheet, Broksum, Financials, Status, StockList } from './types'
 
 export default function Home() {
   const [ticker, setTicker] = useState("")
@@ -16,6 +18,8 @@ export default function Home() {
   const [stockList, setStockList] = useState<StockList>([])
   const [showDropdown, setShowDropdown] = useState(false)
   const [broksum, setBroksum] = useState<Broksum | null>(null)
+  const [financials, setFinancials] = useState<Financials[]>([])
+  const [balanceSheet, setBalanceSheet] = useState<BalanceSheet[]>([])
 
   const handleAnalyze = async (selectedTicker?: string) => {
     try {
@@ -83,13 +87,31 @@ export default function Home() {
   }, [])
 
   useEffect(() => {
+    if (ticker === '') return
+
     const fetchBroksum = async () => {
       const response = await fetch(`/api/stock/${ticker}/broksum`)
       const result = await response.json() as Broksum
       setBroksum(result)
     }
 
+    const fetchFundamental = async () => {
+      const [financialsResponse, balanceSheetResponse] = await Promise.all([
+        await fetch(`/api/stock/${ticker}/financials`),
+        await fetch(`/api/stock/${ticker}/balance-sheet`)
+      ])
+
+      const financialsResult = await financialsResponse.json()
+      const balanceSheetResult = await balanceSheetResponse.json()
+      console.log(financialsResult)
+      console.log(balanceSheetResult)
+
+      setFinancials(financialsResult)
+      setBalanceSheet(balanceSheetResult)
+    }
+
     fetchBroksum()
+    fetchFundamental()
   }, [ticker])
 
   return (
@@ -254,8 +276,13 @@ export default function Home() {
             <div className="mb-3">
               <h2 className='text-xl'>Fundamental</h2>
 
-              <div className='space-y-1'>
+              <div className='space-y-2 mb-6'>
+                <FinancialTable financials={financials} />
                 <p className='text-slate-300'>{data?.financials}</p>
+              </div>
+
+              <div className='space-y-2'>
+                <BalanceSheetTable balanceSheet={balanceSheet} />
                 <p className='text-slate-300'>{data?.balanceSheet}</p>
               </div>
             </div>

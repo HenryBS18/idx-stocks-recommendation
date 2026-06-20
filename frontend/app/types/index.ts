@@ -49,3 +49,43 @@ export type Broksum = {
   date: string
   broksum: string
 }
+
+export type Financials = {
+  "date": string
+  "NPM": string
+  "OPM": string
+  "Pendapatan Total": string
+  "Laba Operasional": string
+  "EBITDA": string
+  "Laba Bersih": string
+  "Laba Sebelum Pajak": string
+  "Penyisihan Pajak": string
+  "Beban Operasional": string
+  "Beban Bunga": string
+  "Pendapatan Bunga": string
+}
+
+export type BalanceSheet = {
+  "date": string
+  "EPS": string
+  "PER": string
+  "PBV": string
+  "ROE": string
+  "DER": string
+  "Total Aset": string
+  "Kas dan Setara Kas": string
+  "Piutang Usaha": string
+  "Aset Tetap Bersih": string
+  "Total Liabilitas": string
+  "Utang Usaha": string
+  "Total Ekuitas": string
+  "Saldo Laba": string
+}
+
+export type FinancialTableProps = {
+  financials: Financials[]
+}
+
+export type BalanceSheetTableProps = {
+  balanceSheet: BalanceSheet[]
+}
