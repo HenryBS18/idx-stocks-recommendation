@@ -1,15 +1,18 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import ErrorState from './components/ErrorState'
 import LoadingState from './components/LoadingState'
-import { AnalyzeResponse, Status } from './types'
+import { AnalyzeResponse, Status, StockList } from './types'
 
 export default function Home() {
   const [ticker, setTicker] = useState("")
   const [status, setStatus] = useState<Status>("idle")
   const [errorMessage, setErrorMessage] = useState("")
   const [data, setData] = useState<AnalyzeResponse>()
+  const [search, setSearch] = useState("")
+  const [stockList, setStockList] = useState<StockList>([])
+  const [showDropdown, setShowDropdown] = useState(false)
 
   const handleAnalyze = async (selectedTicker?: string) => {
     try {
@@ -25,7 +28,7 @@ export default function Home() {
       if (!finalTicker) throw new Error('Kode saham tidak boleh kosong')
       if (finalTicker.length < 4) throw new Error('Kode saham harus 4 karakter')
 
-      const response = await fetch(`/api/stock`, {
+      const response = await fetch('/api/stock', {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -57,6 +60,25 @@ export default function Home() {
     }
   }
 
+  const filteredStocks = stockList.filter((stock) => {
+    const keyword = search.toLowerCase()
+
+    return (
+      stock.ticker.toLowerCase().includes(keyword) ||
+      stock.name.toLowerCase().includes(keyword)
+    )
+  }).slice(0, 5)
+
+  useEffect(() => {
+    const fetchStockList = async () => {
+      const response = await fetch("/api/stock/list")
+      const result = await response.json() as StockList
+      setStockList(result)
+    }
+
+    fetchStockList()
+  }, [])
+
   return (
     <main className="min-h-screen bg-slate-950 text-white px-4 py-6 mx-auto">
       <header className="mb-6">
@@ -69,25 +91,41 @@ export default function Home() {
       </header>
 
       <section className="mb-6">
-        <div className="flex gap-2">
+        <div className="relative">
           <input
-            value={ticker}
-            onChange={(e) => setTicker(e.target.value.toUpperCase().replace(/[^A-Za-z\s]/g, ''))}
-            onKeyDown={(e) => e.key === "Enter" && handleAnalyze()}
-            placeholder="BBCA, TLKM..."
-            inputMode='text'
-            type='text'
-            maxLength={4}
-            disabled={status === "loading"}
-            className="flex-1 px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-sm outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value)
+              setShowDropdown(true)
+            }}
+            placeholder="Search BBCA or Bank Central Asia"
+            className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800"
           />
-          <button
-            onClick={() => handleAnalyze()}
-            disabled={status === "loading"}
-            className="px-4 py-3 rounded-xl bg-blue-600 text-sm font-medium cursor-pointer hover:bg-blue-500 disabled:opacity-50"
-          >
-            {status === "loading" ? "..." : "Analyze"}
-          </button>
+
+          {showDropdown && search && filteredStocks.length > 0 && (
+            <div className="absolute top-full mt-2 w-full rounded-xl border border-slate-800 bg-slate-900 overflow-hidden z-10">
+              {filteredStocks.map((stock) => (
+                <button
+                  key={stock.ticker}
+                  className="w-full px-4 py-3 text-left cursor-pointer hover:bg-slate-800"
+                  onClick={() => {
+                    setSearch(stock.ticker)
+                    setTicker(stock.ticker)
+                    setShowDropdown(false)
+                    handleAnalyze(stock.ticker)
+                  }}
+                >
+                  <div className="font-medium">
+                    {stock.ticker}
+                  </div>
+
+                  <div className="text-sm text-slate-400">
+                    {stock.name}
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
@@ -110,8 +148,8 @@ export default function Home() {
         </div>
       )}
 
-      {status === "loading" && (<LoadingState />)}
-      {status === "error" && (<ErrorState errorMessage={errorMessage} handleAnalyze={handleAnalyze} />)}
+      {status === "loading" && <LoadingState />}
+      {status === "error" && <ErrorState errorMessage={errorMessage} handleAnalyze={handleAnalyze} />}
 
       {status === "done" && (
         <div className="space-y-4 transition-opacity duration-300">
