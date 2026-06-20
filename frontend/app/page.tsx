@@ -1,5 +1,6 @@
 "use client"
 
+import Link from 'next/link'
 import { useEffect, useState } from "react"
 import ErrorState from './components/ErrorState'
 import LoadingState from './components/LoadingState'
@@ -262,7 +263,14 @@ export default function Home() {
             <div className="mb-3">
               <h2 className='text-xl'>Berita</h2>
 
-              <p className='text-slate-300'>{data?.news}</p>
+              <p className='text-slate-300 mb-2'>{data?.news.text}</p>
+
+              <p className='text-slate-200'>Sumber:</p>
+              <ul>
+                {data?.news.sources.map((source, i) => (
+                  <li key={i}><Link className='text-blue-300' href={source} target='_blank'>{source}</Link></li>
+                ))}
+              </ul>
             </div>
 
             <div className="mb-3">

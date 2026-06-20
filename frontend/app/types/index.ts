@@ -12,7 +12,10 @@ export type AnalyzeResponse = {
   brokerSummary: string
   financials: string
   balanceSheet: string
-  news: string
+  news: {
+    text: string
+    sources: string[]
+  }
   summary: string
   recommendation: string
 }
