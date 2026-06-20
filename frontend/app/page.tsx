@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import ErrorState from './components/ErrorState'
 import LoadingState from './components/LoadingState'
+import StockChart from './components/StockChart'
 import { AnalyzeResponse, Status, StockList } from './types'
 
 export default function Home() {
@@ -184,6 +185,8 @@ export default function Home() {
 
             <div className="mb-3 space-y-2">
               <h2 className='text-xl'>Teknikal</h2>
+
+              <StockChart ticker={ticker} support={data?.support} resistance={data?.resistance} />
 
               <div>
                 <h3>Tren Harga</h3>

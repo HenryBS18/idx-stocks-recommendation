@@ -26,3 +26,18 @@ export type StockList = {
   ticker: string
   name: string
 }[]
+
+export type OHLCVData = {
+  time: string
+  open: number
+  high: number
+  low: number
+  close: number
+  volume: number
+}
+
+export type StockChartProps = {
+  ticker: string
+  support?: string[]
+  resistance?: string[]
+}
