@@ -18,11 +18,23 @@ export default function Home() {
   const [search, setSearch] = useState("")
   const [stockList, setStockList] = useState<StockList>([])
   const [showDropdown, setShowDropdown] = useState(false)
+
   const [broksum, setBroksum] = useState<Broksum | null>(null)
   const [financials, setFinancials] = useState<Financials[]>([])
   const [balanceSheet, setBalanceSheet] = useState<BalanceSheet[]>([])
+
   const [isBroksumLoading, setIsBroksumLoading] = useState<boolean>(false)
   const [isFundamentalLoading, setIsFundamentalLoading] = useState<boolean>(false)
+
+  const [showFullList, setShowFullList] = useState(false)
+  const [visibleCount, setVisibleCount] = useState(10)
+
+  const handleScrollList = (e: React.UIEvent<HTMLDivElement>) => {
+    const { scrollTop, clientHeight, scrollHeight } = e.currentTarget
+    if (scrollHeight - scrollTop <= clientHeight + 10) {
+      setVisibleCount((prev) => Math.min(prev + 10, stockList.length))
+    }
+  }
 
   const handleAnalyze = async (selectedTicker?: string) => {
     try {
@@ -31,6 +43,7 @@ export default function Home() {
       setStatus("loading")
       setErrorMessage("")
       setData(undefined)
+      setSearch(finalTicker)
       setTicker(finalTicker)
 
       await new Promise(resolve => setTimeout(resolve, 200))
@@ -125,12 +138,14 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-slate-950 text-white px-4 py-6 mx-auto">
       <header className="mb-6">
-        <h1 className="text-lg font-semibold">
-          IDX Stocks Recommendation
-        </h1>
-        <p className="text-sm text-slate-400">
-          AI-Powered Indonesian Stocks Analyzer
-        </p>
+        <a href='/'>
+          <h1 className="text-lg font-semibold">
+            IDX Stocks Recommendation
+          </h1>
+          <p className="text-sm text-slate-400">
+            AI-Powered Indonesian Stocks Analyzer
+          </p>
+        </a>
       </header>
 
       <section className="mb-6">
@@ -141,7 +156,7 @@ export default function Home() {
               setSearch(e.target.value)
               setShowDropdown(true)
             }}
-            placeholder="Search BBCA or Bank Central Asia"
+            placeholder="Cari BBCA atau Bank Central Asia"
             className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800"
           />
 
@@ -152,8 +167,6 @@ export default function Home() {
                   key={stock.ticker}
                   className="w-full px-4 py-3 text-left cursor-pointer hover:bg-slate-800"
                   onClick={() => {
-                    setSearch(stock.ticker)
-                    setTicker(stock.ticker)
                     setShowDropdown(false)
                     handleAnalyze(stock.ticker)
                   }}
@@ -173,20 +186,60 @@ export default function Home() {
       </section>
 
       {status === "idle" && (
-        <div className="text-center mt-16">
+        <div className="text-center mt-16 max-w-lg mx-auto">
           <p className="text-sm text-slate-400 mb-4">
-            Try Searching:
+            Coba pencarian cepat:
           </p>
-          <div className="flex gap-2 justify-center flex-wrap">
-            {["BBCA", "TLKM", "ASII"].map((t) => (
+          <div className="flex gap-2 justify-center flex-wrap mb-8">
+            {["BBCA", "TLKM", "ASII", "BMRI", "BREN"].map((t) => (
               <button
                 key={t}
                 onClick={() => handleAnalyze(t)}
-                className="text-xs px-3 py-1 rounded-full bg-slate-800 cursor-pointer"
+                className="text-sm px-4 py-1.5 rounded-full bg-slate-800 hover:bg-slate-700 transition-colors cursor-pointer"
               >
                 {t}
               </button>
             ))}
+          </div>
+
+          <div className="border-t border-slate-800 pt-6">
+            <button
+              onClick={() => setShowFullList(!showFullList)}
+              className="text-sm px-6 py-2.5 rounded-xl bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 border border-blue-500/30 transition-colors font-medium"
+            >
+              {showFullList ? "Sembunyikan Daftar Saham" : "Lihat Semua Saham IDX"}
+            </button>
+
+            {showFullList && stockList.length > 0 && (
+              <div
+                className="mt-4 mx-auto max-w-md h-72 overflow-y-auto bg-slate-900/50 border border-slate-700 rounded-xl text-left p-2 shadow-inner custom-scrollbar"
+                onScroll={handleScrollList}
+              >
+                {stockList.slice(0, visibleCount).map((stock) => (
+                  <button
+                    key={stock.ticker}
+                    onClick={() => {
+                      setShowFullList(false)
+                      handleAnalyze(stock.ticker)
+                    }}
+                    className="w-full px-4 py-3 flex items-center justify-between hover:bg-slate-800 rounded-lg cursor-pointer transition-colors group"
+                  >
+                    <span className="font-bold text-slate-300 group-hover:text-blue-400 transition-colors">
+                      {stock.ticker}
+                    </span>
+                    <span className="text-xs text-slate-500 truncate ml-4 text-right">
+                      {stock.name}
+                    </span>
+                  </button>
+                ))}
+
+                {visibleCount < stockList.length && (
+                  <div className="text-center py-4 text-xs text-slate-500 animate-pulse">
+                    Scroll ke bawah untuk memuat lebih banyak...
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}
