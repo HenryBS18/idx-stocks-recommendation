@@ -35,6 +35,9 @@ def get_financials_route(ticker: str):
 		)
 	except Exception as e:
 		print(f'ERROR [{get_financials_route.__name__}] {e}')
+  
+		if 'Data belum tersedia' in str(e):
+			return {'message': 'Data belum tersedia'}, 500
 		
 		return {'message': f'{ticker} not found'}, 404
 
@@ -51,6 +54,9 @@ def get_balance_sheet_route(ticker: str):
 		)
 	except Exception as e:
 		print(f'ERROR [{get_balance_sheet_route.__name__}] {e}')
+
+		if 'Data belum tersedia' in str(e):
+			return {'message': 'Data belum tersedia'}, 500
 		
 		return {'message': f'{ticker} not found'}, 404
 

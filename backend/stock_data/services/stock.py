@@ -78,53 +78,77 @@ class StockService:
 
 		if os.path.exists(file_path):
 			return file_path, filename
-		
+
 		ticker_valid = self.get_name(ticker)
 
 		if ticker_valid == None:
 			raise Exception
-		
+
 		yf_ticker = yf.Ticker(f'{ticker.upper()}.JK')
 
 		df = yf_ticker.get_financials(freq='quarterly').T
 
+		if df.empty:
+			raise Exception('Data belum tersedia')
+
+		rev = df.get('TotalRevenue', 0)
+		net_inc = df.get('NetIncome', 0)
+		pretax = df.get('PretaxIncome', 0)
+		interest = df.get('InterestExpense', 0)
+		da = df.get('DepreciationAndAmortizationInIncomeStatement', 0)
+		op_exp = df.get('OperatingExpense', 0)
+
+		df['OperatingIncome'] = rev - op_exp
+		df['EBITDA'] = pretax + interest + da
+
+		df['NPM'] = (net_inc / rev).replace([float('inf'), -float('inf')], 0).fillna(0) * 100
+		df['OPM'] = (df['OperatingIncome'] / rev).replace([float('inf'), -float('inf')], 0).fillna(0) * 100
+
 		wanted_columns = [
-    'TotalRevenue',
-    'GrossProfit',
-    'OperatingIncome',
-    'EBITDA',
-    'NetIncome',
-    'PretaxIncome',
-    'TaxProvision',
-    'InterestExpense',
-    'InterestIncome',
-    'TotalExpenses',
-    'CostOfRevenue',
+			'TotalRevenue',
+			'OperatingIncome',
+			'EBITDA',
+			'NetIncome',
+			'PretaxIncome',
+			'TaxProvision',
+			'OperatingExpense',
+			'InterestExpense',
+			'InterestIncome',
+			'TotalExpenses',
+			'CostOfRevenue',
 		]
 
 		existing_columns = [col for col in wanted_columns if col in df.columns]
-		df = df[existing_columns]
+		df_metrics = df[existing_columns].copy()
 
 		rename_columns = {
-			'TotalRevenue': 'Pendapatan Total',
-			'GrossProfit': 'Laba Kotor',
-			'OperatingIncome': 'Laba Operasional',
-			'EBITDA': 'EBITDA',
-			'NetIncome': 'Laba Bersih',
-			'PretaxIncome': 'Laba Sebelum Pajak',
-			'TaxProvision': 'Penyisihan Pajak',
-			'InterestExpense': 'Beban Bunga',
-			'InterestIncome': 'Pendapatan Bunga',
-			'TotalExpenses': 'Total Beban',
-			'CostOfRevenue': 'Beban Pokok Pendapatan',
+				'TotalRevenue': 'Pendapatan Total',
+				'OperatingIncome': 'Laba Operasional',
+				'EBITDA': 'EBITDA',
+				'NetIncome': 'Laba Bersih',
+				'PretaxIncome': 'Laba Sebelum Pajak',
+				'TaxProvision': 'Penyisihan Pajak',
+				'OperatingExpense': 'Beban Operasional',
+				'InterestExpense': 'Beban Bunga',
+				'InterestIncome': 'Pendapatan Bunga',
+				'TotalExpenses': 'Total Beban',
+				'CostOfRevenue': 'Beban Pokok Pendapatan',
 		}
 
-		df = df.rename(columns=rename_columns)
+		df_metrics = df_metrics.rename(columns=rename_columns)
 
-		for column in df.columns:
-			df[column] = df[column].apply(format_number)
+		for column in df_metrics.columns:
+			df_metrics[column] = df_metrics[column].fillna(0).apply(format_number)
 
-		df.to_csv(file_path, float_format='%.2f', index_label='date')
+		df_ratios = df[['NPM', 'OPM']].round(2)
+		for column in df_ratios.columns:
+			df_ratios[column] = df_ratios[column].apply(lambda x: f"{x:.2f}%")
+
+		df_final = pd.concat([df_ratios, df_metrics], axis=1)
+
+		df_final = df_final[~df_final.isin([0, 0.0, "0", "0.00", "0.00x", "0.00%"]).all(axis=1)]
+
+		df_final.to_csv(file_path, index_label='date')
 
 		delete_file_later(file_path)
 
@@ -149,6 +173,9 @@ class StockService:
 		df_bs = yf_ticker.get_balance_sheet(freq='quarterly').T
 		df_is = yf_ticker.get_income_stmt(freq='quarterly').T
 
+		if df_bs.empty:
+			raise Exception('Data belum tersedia')
+
 		income_cols = [col for col in ['NetIncome'] if col in df_is.columns]
 		df = df_bs.join(df_is[income_cols], how='left')
 
@@ -158,12 +185,13 @@ class StockService:
 		laba_bersih = df.get('NetIncome', 0)
 
 		df['EPS'] = (laba_bersih / saham_beredar).replace([float('inf'), -float('inf')], 0).fillna(0)
-		df['DER'] = (liabilitas / ekuitas).replace([float('inf'), -float('inf')], 0).fillna(0)
-		df['ROE'] = (laba_bersih / ekuitas).replace([float('inf'), -float('inf')], 0).fillna(0) 
+
+		df['DER'] = (liabilitas / ekuitas).replace([float('inf'), -float('inf')], 0).fillna(0) * 100
+		df['ROE'] = (laba_bersih / ekuitas).replace([float('inf'), -float('inf')], 0).fillna(0) * 4 * 100
 
 		bvps = (ekuitas / saham_beredar).replace([float('inf'), -float('inf')], 0).fillna(0)
 		df['PBV'] = (last_price / bvps).replace([float('inf'), -float('inf')], 0).fillna(0)
-		df['PER'] = (last_price / df['EPS']).replace([float('inf'), -float('inf')], 0).fillna(0)
+		df['PER'] = (last_price / (df['EPS'] * 4)).replace([float('inf'), -float('inf')], 0).fillna(0)
 
 		wanted_columns = [
 			'TotalAssets', 
@@ -176,13 +204,17 @@ class StockService:
 			'AccountsPayable', 
 			'StockholdersEquity', 
 			'RetainedEarnings',
-			'TangibleBookValue', 
-			'OrdinarySharesNumber'
 		]
 
 		existing_columns = [col for col in wanted_columns if col in df.columns]
 
 		df_ratios = df[['EPS', 'PER', 'PBV', 'ROE', 'DER']].round(2)
+		for col in ['PER', 'PBV']:
+			df_ratios[col] = df_ratios[col].apply(lambda x: f"{x:.2f}x")
+
+		for col in ['ROE', 'DER']:
+			df_ratios[col] = df_ratios[col].apply(lambda x: f"{x:.2f}%")
+
 		df_metrics = df[existing_columns].copy()
 
 		rename_columns = {
@@ -196,8 +228,6 @@ class StockService:
 			'AccountsPayable': 'Utang Usaha',
 			'StockholdersEquity': 'Total Ekuitas',
 			'RetainedEarnings': 'Saldo Laba',
-			'TangibleBookValue': 'Nilai Buku Tangible',
-			'OrdinarySharesNumber': 'Jumlah Saham Beredar'
 		}
 
 		df_metrics = df_metrics.rename(columns=rename_columns)
@@ -206,7 +236,7 @@ class StockService:
 			df_metrics[column] = df_metrics[column].apply(format_number)
 
 		df_final = pd.concat([df_ratios, df_metrics], axis=1)
-		df_final = df_final[~df_final.isin([0, 0.0, "0", "0.00"]).all(axis=1)]
+		df_final = df_final[~df_final.isin([0, 0.0, "0", "0.00", "0.00x", "0.00%"]).all(axis=1)]
 
 		df_final.to_csv(file_path, float_format='%.2f', index_label='date')
 

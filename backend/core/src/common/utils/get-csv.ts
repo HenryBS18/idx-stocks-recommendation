@@ -14,7 +14,13 @@ export const getCsv = async (ticker: string, stockDataType: StockDataType): Prom
     const stockDataApiBaseUrl = process.env.STOCK_DATA_API_URL
     const response = await fetch(`${stockDataApiBaseUrl}/stock/${ticker}/${stockDataType}`)
 
-    if (!response.ok) throw new Error(`Failed to fetch ${stockDataType}`)
+    if (!response.ok) {
+      const message = (await response.json()).message
+
+      if (message === 'Data belum tersedia') return message
+
+      throw new Error(`Failed to fetch ${stockDataType}`)
+    }
 
     const csv = await response.text()
 
