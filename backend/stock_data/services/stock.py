@@ -1,6 +1,6 @@
 import yfinance as yf
 from datetime import datetime, timedelta
-from utils import normalize_price, delete_file_later
+from utils import normalize_price, delete_file_later, format_number
 from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
 import csv
@@ -86,8 +86,7 @@ class StockService:
 		
 		yf_ticker = yf.Ticker(f'{ticker.upper()}.JK')
 
-		df = yf_ticker.get_financials(freq='quarterly')
-		df = df.T
+		df = yf_ticker.get_financials(freq='quarterly').T
 
 		wanted_columns = [
     'TotalRevenue',
@@ -97,11 +96,8 @@ class StockService:
     'NetIncome',
     'PretaxIncome',
     'TaxProvision',
-    'DilutedEPS',
-    'BasicEPS',
     'InterestExpense',
     'InterestIncome',
-    'ReconciledDepreciation',
     'TotalExpenses',
     'CostOfRevenue',
 		]
@@ -109,18 +105,24 @@ class StockService:
 		existing_columns = [col for col in wanted_columns if col in df.columns]
 		df = df[existing_columns]
 
-		float_columns = [
-			'BasicEPS',
-			'DilutedEPS',
-		]
+		rename_columns = {
+			'TotalRevenue': 'Pendapatan Total',
+			'GrossProfit': 'Laba Kotor',
+			'OperatingIncome': 'Laba Operasional',
+			'EBITDA': 'EBITDA',
+			'NetIncome': 'Laba Bersih',
+			'PretaxIncome': 'Laba Sebelum Pajak',
+			'TaxProvision': 'Penyisihan Pajak',
+			'InterestExpense': 'Beban Bunga',
+			'InterestIncome': 'Pendapatan Bunga',
+			'TotalExpenses': 'Total Beban',
+			'CostOfRevenue': 'Beban Pokok Pendapatan',
+		}
+
+		df = df.rename(columns=rename_columns)
 
 		for column in df.columns:
-			df[column] = df[column].fillna(0)
-
-			if column not in float_columns:
-				df[column] = df[column].astype(int)
-			else:
-				df[column] = df[column].astype(float).round(2)
+			df[column] = df[column].apply(format_number)
 
 		df.to_csv(file_path, float_format='%.2f', index_label='date')
 
@@ -142,35 +144,71 @@ class StockService:
 		
 		yf_ticker = yf.Ticker(f'{ticker.upper()}.JK')
 
-		df = yf_ticker.get_balance_sheet(freq='quarterly')
-		df = df.T
+		last_price = yf_ticker.fast_info['lastPrice']
+
+		df_bs = yf_ticker.get_balance_sheet(freq='quarterly').T
+		df_is = yf_ticker.get_income_stmt(freq='quarterly').T
+
+		income_cols = [col for col in ['NetIncome'] if col in df_is.columns]
+		df = df_bs.join(df_is[income_cols], how='left')
+
+		ekuitas = df.get('StockholdersEquity', 0)
+		liabilitas = df.get('TotalLiabilitiesNetMinorityInterest', 0)
+		saham_beredar = df.get('OrdinarySharesNumber', 0)
+		laba_bersih = df.get('NetIncome', 0)
+
+		df['EPS'] = (laba_bersih / saham_beredar).replace([float('inf'), -float('inf')], 0).fillna(0)
+		df['DER'] = (liabilitas / ekuitas).replace([float('inf'), -float('inf')], 0).fillna(0)
+		df['ROE'] = (laba_bersih / ekuitas).replace([float('inf'), -float('inf')], 0).fillna(0) 
+
+		bvps = (ekuitas / saham_beredar).replace([float('inf'), -float('inf')], 0).fillna(0)
+		df['PBV'] = (last_price / bvps).replace([float('inf'), -float('inf')], 0).fillna(0)
+		df['PER'] = (last_price / df['EPS']).replace([float('inf'), -float('inf')], 0).fillna(0)
 
 		wanted_columns = [
-		'date',
-		'TotalAssets',
-		'TotiabilitiesNetMinorityInterest',
-		'StockholdersEquity',
-		'CommonStockEquity',
-		'TotalDebt',
-		'CashAndCashEquivalents',
-		'Receivables',
-		'NetPPE',
-		'RetainedEarnings',
-		'TangibleBookValue',
-		'InvestedCapital',
-		'Payables',
-		'LongTermDebtAndCapiteaseObligation',
-		'GoodwillAndOtherIntangibleAssets',
+			'TotalAssets', 
+			'CashAndCashEquivalents', 
+			'Receivables', 
+			'NetPPE',
+			'GoodwillAndOtherIntangibleAssets', 
+			'TotalLiabilitiesNetMinorityInterest',
+			'TotalDebt', 
+			'AccountsPayable', 
+			'StockholdersEquity', 
+			'RetainedEarnings',
+			'TangibleBookValue', 
+			'OrdinarySharesNumber'
 		]
 
 		existing_columns = [col for col in wanted_columns if col in df.columns]
-		df = df[existing_columns]
 
-		for column in df.columns:
-			df[column] = df[column].fillna(0)
-			df[column] = df[column].astype(int)
+		df_ratios = df[['EPS', 'PER', 'PBV', 'ROE', 'DER']].round(2)
+		df_metrics = df[existing_columns].copy()
 
-		df.to_csv(file_path, float_format='%.2f', index_label='date')
+		rename_columns = {
+			'TotalAssets': 'Total Aset',
+			'CashAndCashEquivalents': 'Kas dan Setara Kas',
+			'Receivables': 'Piutang Usaha',
+			'NetPPE': 'Aset Tetap Bersih',
+			'GoodwillAndOtherIntangibleAssets': 'Goodwill dan Aset Takberwujud',
+			'TotalLiabilitiesNetMinorityInterest': 'Total Liabilitas',
+			'TotalDebt': 'Total Utang Berbunga',
+			'AccountsPayable': 'Utang Usaha',
+			'StockholdersEquity': 'Total Ekuitas',
+			'RetainedEarnings': 'Saldo Laba',
+			'TangibleBookValue': 'Nilai Buku Tangible',
+			'OrdinarySharesNumber': 'Jumlah Saham Beredar'
+		}
+
+		df_metrics = df_metrics.rename(columns=rename_columns)
+
+		for column in df_metrics.columns:
+			df_metrics[column] = df_metrics[column].apply(format_number)
+
+		df_final = pd.concat([df_ratios, df_metrics], axis=1)
+		df_final = df_final[~df_final.isin([0, 0.0, "0", "0.00"]).all(axis=1)]
+
+		df_final.to_csv(file_path, float_format='%.2f', index_label='date')
 
 		delete_file_later(file_path)
 
