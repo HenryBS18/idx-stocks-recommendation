@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useState } from "react"
 import BalanceSheetTable from './components/BalanceSheetTable'
+import BroksumTable from './components/BroksumTable'
 import ErrorState from './components/ErrorState'
 import FinancialTable from './components/FinancialsTable'
 import LoadingState from './components/LoadingState'
@@ -260,16 +261,7 @@ export default function Home() {
             <div className="mb-3">
               <h2 className='text-xl'>Bandarmologi</h2>
 
-              {broksum && (
-                <div className='border border-gray-500 rounded-lg w-fit px-3 pt-2 mt-1 mb-2'>
-                  <span className='text-sm text-slate-300'>Broker Summary | </span>
-                  <span className='text-sm text-slate-300'>{broksum.date}</span>
-
-                  <div className='w-full h-[0.5px] bg-gray-500' />
-                  <div className='mt-2' dangerouslySetInnerHTML={{ __html: broksum.broksum }} />
-                </div>
-              )}
-
+              {broksum && (<BroksumTable broksum={broksum} />)}
               <p className='text-slate-300'>{data?.brokerSummary}</p>
             </div>
 

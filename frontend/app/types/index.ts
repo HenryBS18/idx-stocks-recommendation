@@ -87,3 +87,7 @@ export type FinancialTableProps = {
 export type BalanceSheetTableProps = {
   balanceSheet: BalanceSheet[]
 }
+
+export type BroksumTableProps = {
+  broksum: Broksum
+}
