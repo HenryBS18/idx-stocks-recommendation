@@ -82,12 +82,15 @@ export type BalanceSheet = {
 
 export type FinancialTableProps = {
   financials: Financials[]
+  isLoading: boolean
 }
 
 export type BalanceSheetTableProps = {
   balanceSheet: BalanceSheet[]
+  isLoading: boolean
 }
 
 export type BroksumTableProps = {
-  broksum: Broksum
+  broksum: Broksum | null
+  isLoading: boolean
 }

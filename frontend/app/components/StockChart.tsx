@@ -8,6 +8,7 @@ import { parsePriceRange } from '../utils/parse-price-range'
 
 export default function StockChart({ ticker, support = [], resistance = [] }: StockChartProps) {
   const [data, setData] = useState<OHLCVData[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
   const chartContainerRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<IChartApi | null>(null)
@@ -18,9 +19,13 @@ export default function StockChart({ ticker, support = [], resistance = [] }: St
 
   useEffect(() => {
     const fetchPrice = async () => {
+      setIsLoading(true)
+
       const res = await fetch(`/api/stock/${ticker}/price`)
       const result = await res.json() as OHLCVData[]
+
       setData(result)
+      setIsLoading(false)
     }
 
     fetchPrice()
@@ -143,9 +148,7 @@ export default function StockChart({ ticker, support = [], resistance = [] }: St
             lineColor: 'rgba(239, 83, 80, 0.6)',
             lineWidth: 1
           },
-          {
-            locked: true,
-          }
+          { locked: true }
         )
 
         drawingManagerRef.current.addDrawing(rect)
@@ -171,9 +174,7 @@ export default function StockChart({ ticker, support = [], resistance = [] }: St
             lineColor: 'rgba(38, 166, 154, 0.6)',
             lineWidth: 1,
           },
-          {
-            locked: true,
-          }
+          { locked: true }
         )
 
         drawingManagerRef.current.addDrawing(rect)
@@ -195,6 +196,14 @@ export default function StockChart({ ticker, support = [], resistance = [] }: St
 
   return (
     <div style={{ position: 'relative', width: '100%', backgroundColor: '#131722', borderRadius: '8px', padding: '15px' }}>
+
+      {isLoading && (
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-[#131722] rounded-lg">
+          <div className="w-10 h-10 border-4 border-slate-700 border-t-emerald-500 rounded-full animate-spin"></div>
+          <span className="mt-3 text-sm font-medium text-slate-400">Memuat grafik...</span>
+        </div>
+      )}
+
       <div ref={chartContainerRef} />
     </div>
   )
