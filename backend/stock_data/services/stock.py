@@ -149,6 +149,9 @@ class StockService:
 
 		df_final = df_final[~df_final.isin([0, 0.0, "0", "0.00", "0.00x", "0.00%"]).all(axis=1)]
 
+		dt_index = pd.to_datetime(df_final.index)
+		df_final.index = dt_index.year.astype(str) + ' Q' + dt_index.quarter.astype(str)
+
 		df_final.to_csv(file_path, index_label='date')
 
 		delete_file_later(file_path)
@@ -232,6 +235,9 @@ class StockService:
 
 		df_final = pd.concat([df_ratios, df_metrics], axis=1)
 		df_final = df_final[~df_final.isin([0, 0.0, "0", "0.00", "0.00x", "0.00%"]).all(axis=1)]
+
+		dt_index = pd.to_datetime(df_final.index)
+		df_final.index = dt_index.year.astype(str) + ' Q' + dt_index.quarter.astype(str)
 
 		df_final.to_csv(file_path, float_format='%.2f', index_label='date')
 
@@ -351,7 +357,7 @@ class StockService:
 		broksum_html_str = res.json()['broksum_html']
 
 		return {
-			'date': f"{start_date.strftime('%d %b %Y')} - {end_date.strftime('%d %b %Y')} (3 bulan)",
+			'date': f"{start_date.strftime('%d %b %Y')} - {end_date.strftime('%d %b %Y')}",
 			'broksum': str(broksum_html_str).replace('\n', '').replace('        ', '').replace('    ', '').replace('<form id=\"broksum-form\" method=\"post\">', '').replace('</form>', '').replace(' id=\"broker-summary-table\"', '').replace('broksum-broker ', '').replace('w-100', 'w-full sm:w-110').replace('text-green', 'text-green-600 text-xs pb-3 sm:text-sm').replace('text-red', 'text-red-600 text-xs pb-3 sm:text-sm').replace('pr-1', 'pr-2').replace('text-sm', 'text-xs sm:text-sm'),
 		}
 
