@@ -25,7 +25,7 @@ export default function BroksumTable({ broksum, isLoading }: BroksumTableProps) 
                 </tr>
               </thead>
               <tbody>
-                {[...Array(5)].map((_, rowIndex) => (
+                {[...Array(14)].map((_, rowIndex) => (
                   <tr key={`skel-row-${rowIndex}`}>
 
                     {[...Array(4)].map((_, colIndex) => (
