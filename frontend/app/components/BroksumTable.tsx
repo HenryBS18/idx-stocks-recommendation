@@ -2,9 +2,9 @@ import { BroksumTableProps } from '../types'
 
 export default function BroksumTable({ broksum, isLoading }: BroksumTableProps) {
   return (
-    <div className='mt-1'>
-      <span className='text-sm text-slate-300'>Broker Summary </span>
-      {!isLoading && (<span className='text-sm text-slate-300'>| {broksum?.date}</span>)}
+    <div>
+      <span className='text-sm font-semibold text-slate-400'>Broker Summary </span>
+      {!isLoading && (<span className='text-sm font-semibold text-slate-400'>| {broksum?.date}</span>)}
 
       <div className='max-w-full overflow-x-auto border border-gray-500 rounded-lg w-fit mt-1 mb-2'>
         {isLoading ? (

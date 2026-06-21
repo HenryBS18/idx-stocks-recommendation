@@ -25,62 +25,75 @@ export default function BalanceSheetTable({ balanceSheet, isLoading }: BalanceSh
     'EPS': 'Earnings Per Share',
   }
 
-  return (
-    <div className="max-w-fit">
-      <span className='text-sm text-slate-300'>Data Neraca Keuangan</span>
+  const getCellClass = (key: string, value: any) => {
+    const val = parseFloat(value)
 
-      {isLoading ? (
-        <div className="max-w-full overflow-x-auto border border-gray-500 rounded-lg pt-2 mt-1">
-          <table className="mt-2">
+    if (key === 'ROE' && !isNaN(val)) return val > 15 ? 'text-emerald-400 font-bold' : 'text-slate-300'
+    if (key === 'DER' && !isNaN(val)) return val > 200 ? 'text-rose-400 font-medium' : 'text-emerald-400 font-medium'
+    if ((key === 'PER' || key === 'PBV') && !isNaN(val)) return 'text-sky-300 font-medium'
+    return 'text-slate-300'
+  }
+
+  return (
+    <div className="w-full">
+      <span className='text-sm font-semibold text-slate-400'>
+        Data Neraca Keuangan
+      </span>
+
+      <div className="max-w-fit overflow-x-auto border border-slate-800 rounded-xl shadow-inner bg-slate-900/50">
+        {isLoading ? (
+          <table className="text-sm border-collapse animate-pulse">
             <thead>
-              <tr>
-                {columns.map((key, colIndex) => (
-                  <th
-                    key={`skel-th-${key}`}
-                    className={`px-3 py-2 text-left ${colIndex === 0 ? 'sticky left-0 bg-slate-900 z-10' : ''}`}
-                  >
-                    <div className="h-4 bg-slate-600 rounded animate-pulse w-24"></div>
+              <tr className="bg-slate-800/50">
+                {columns.map((key) => (
+                  <th key={key} className="px-4 py-3 text-left">
+                    <div className="h-4 w-20 bg-slate-700 rounded"></div>
                   </th>
                 ))}
               </tr>
             </thead>
-
             <tbody>
-              {[...Array(4)].map((_, rowIndex) => (
-                <tr key={`skel-row-${rowIndex}`} className="border-t border-slate-700/50">
-                  {columns.map((key, colIndex) => (
-                    <td
-                      key={`skel-td-${key}-${rowIndex}`}
-                      className={`px-3 py-3 ${colIndex === 0 ? 'sticky left-0 bg-slate-900 z-10' : ''}`}
-                    >
-                      <div className="h-4 bg-slate-700 rounded animate-pulse w-full min-w-20"></div>
+              {[...Array(4)].map((_, i) => (
+                <tr key={i} className="border-t border-slate-800">
+                  {columns.map((key) => (
+                    <td key={key} className="px-4 py-3">
+                      <div className="h-4 w-full bg-slate-800 rounded"></div>
                     </td>
                   ))}
                 </tr>
               ))}
             </tbody>
           </table>
-        </div>
-      ) : !balanceSheet || balanceSheet.length === 0 ? (
-        <p className="mt-2 text-sm text-slate-400">Data tidak tersedia saat ini.</p>
-      ) : (
-        <div className="max-w-full overflow-x-auto border border-gray-500 rounded-lg pt-2 mt-1">
-          <table className="mt-2">
+        ) : !balanceSheet || balanceSheet.length === 0 ? (
+          <p className="text-sm text-slate-400">Data tidak tersedia saat ini.</p>
+        ) : (
+          <table className="text-sm border-collapse">
             <thead>
-              <tr>
+              <tr className="bg-slate-800/50">
                 {columns.map((key, colIndex) => (
-                  <th key={key} className={`px-3 py-2 text-left text-xs sm:text-sm font-semibold text-slate-400 text-nowrap ${colIndex === 0 ? 'sticky left-0 bg-slate-900 z-10' : ''}`}>
-                    <span title={columnsTitle[key] || key} >{key}</span>
+                  <th
+                    key={key}
+                    className={`px-3 py-3 text-left font-semibold text-slate-300 whitespace-nowrap
+                    ${colIndex === 0 ? 'sticky left-0 bg-slate-900 z-20 shadow-[2px_0_5px_rgba(0,0,0,0.3)]' : ''}
+                  `}
+                  >
+                    <span title={columnsTitle[key] ?? key}>{key}</span>
                   </th>
                 ))}
               </tr>
             </thead>
 
-            <tbody>
+            <tbody className="divide-y divide-slate-800">
               {balanceSheet.map((row, rowIndex) => (
-                <tr key={row.Periode || rowIndex} className="hover:bg-slate-800 border-t border-slate-700/50">
+                <tr key={rowIndex} className="hover:bg-slate-800/80 transition-colors even:bg-slate-900/30">
                   {columns.map((key, colIndex) => (
-                    <td key={key} className={`px-3 py-2 text-xs sm:text-sm text-left text-slate-300 ${colIndex === 0 ? 'sticky left-0 bg-slate-900 group-hover:bg-slate-800 z-10' : ''}`}>
+                    <td
+                      key={key}
+                      className={`px-3 py-3 whitespace-nowrap 
+                      ${colIndex === 0 ? 'sticky left-0 bg-slate-900 z-10 font-medium text-white shadow-[2px_0_5px_rgba(0,0,0,0.3)]' : ''}
+                      ${getCellClass(key, row[key])}
+                    `}
+                    >
                       {row[key]}
                     </td>
                   ))}
@@ -88,8 +101,8 @@ export default function BalanceSheetTable({ balanceSheet, isLoading }: BalanceSh
               ))}
             </tbody>
           </table>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }

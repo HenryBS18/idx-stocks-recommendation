@@ -21,71 +21,83 @@ export default function FinancialTable({ financials, isLoading }: FinancialTable
     'EBITDA': 'Earnings Before Interest, Taxes, Depreciation, and Amortization',
   }
 
-  return (
-    <div className="max-w-fit">
-      <span className='text-sm text-slate-300'>Data Pendapatan</span>
+  const getCellClass = (key: string, value: any) => {
+    const val = typeof value === 'string' ? parseFloat(value.replace(/[^0-9.-]/g, '')) : value
 
-      {isLoading ? (
-        <div className="max-w-full overflow-x-auto border border-gray-500 rounded-lg pt-2 mt-1">
-          <table>
+    if ((key === 'NPM' || key === 'OPM') && !isNaN(val)) return val > 10 ? 'text-emerald-400 font-medium' : val < 0 ? 'text-rose-400 font-medium' : 'text-slate-300'
+    if ((key === 'Laba Bersih' || key === 'Laba Operasional') && !isNaN(val)) return val > 0 ? 'text-emerald-400 font-medium' : 'text-rose-400 font-medium'
+    return 'text-slate-300'
+  }
+
+  return (
+    <div className="w-full">
+      <span className='text-sm font-semibold text-slate-400'>
+        Data Pendapatan
+      </span>
+
+      <div className="max-w-fit overflow-x-auto border border-slate-800 rounded-xl shadow-inner bg-slate-900/50">
+        {isLoading ? (
+          <table className="text-sm border-collapse animate-pulse">
             <thead>
-              <tr>
+              <tr className="bg-slate-800/50">
+                {columns.map((key) => (
+                  <th key={key} className="px-4 py-3 text-left">
+                    <div className="h-4 w-20 bg-slate-700 rounded"></div>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {[...Array(4)].map((_, i) => (
+                <tr key={i} className="border-t border-slate-800">
+                  {columns.map((key) => (
+                    <td key={key} className="px-4 py-3">
+                      <div className="h-4 w-full bg-slate-800 rounded"></div>
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : !financials || financials.length === 0 ? (
+          <p className="text-sm text-slate-400">Data tidak tersedia saat ini.</p>
+        ) : (
+          <table className="text-sm border-collapse">
+            <thead>
+              <tr className="bg-slate-800/50">
                 {columns.map((key, colIndex) => (
                   <th
-                    key={`skel-th-${key}`}
-                    className={`px-3 py-2 text-left ${colIndex === 0 ? 'sticky left-0 bg-slate-900 z-10' : ''}`}
+                    key={key}
+                    className={`px-4 py-3 text-left font-semibold text-slate-300 whitespace-nowrap
+                      ${colIndex === 0 ? 'sticky left-0 bg-slate-900 z-20 shadow-[2px_0_5px_rgba(0,0,0,0.3)]' : ''}
+                    `}
                   >
-                    <div className="h-4 bg-slate-600 rounded animate-pulse w-24"></div>
+                    <span title={columnsTitle[key] ?? key}>{key}</span>
                   </th>
                 ))}
               </tr>
             </thead>
 
-            <tbody>
-              {[...Array(4)].map((_, rowIndex) => (
-                <tr key={`skel-row-${rowIndex}`} className="border-t border-slate-700/50">
+            <tbody className="divide-y divide-slate-800">
+              {financials.map((row, rowIndex) => (
+                <tr key={rowIndex} className="hover:bg-slate-800/80 transition-colors even:bg-slate-900/30">
                   {columns.map((key, colIndex) => (
                     <td
-                      key={`skel-td-${key}-${rowIndex}`}
-                      className={`px-3 py-3 ${colIndex === 0 ? 'sticky left-0 bg-slate-900 z-10' : ''}`}
+                      key={key}
+                      className={`px-4 py-3 whitespace-nowrap 
+                        ${colIndex === 0 ? 'sticky left-0 bg-slate-900 z-10 font-medium text-white shadow-[2px_0_5px_rgba(0,0,0,0.3)]' : ''}
+                        ${getCellClass(key, row[key])}
+                      `}
                     >
-                      <div className="h-4 bg-slate-700 rounded animate-pulse w-full min-w-20"></div>
+                      {row[key]}
                     </td>
                   ))}
                 </tr>
               ))}
             </tbody>
           </table>
-        </div>
-      ) : !financials || financials.length === 0 ? (
-        <p className="mt-2 text-sm text-slate-400">Data tidak tersedia saat ini.</p>
-      ) : (
-        <div className="max-w-full overflow-x-auto border border-gray-500 rounded-lg pt-2 mt-1">
-          <table>
-            <thead>
-              <tr>
-                {columns.map((key, colIndex) => (
-                  <th key={key} className={`px-3 py-2 text-left text-xs sm:text-sm font-semibold text-slate-400 text-nowrap ${colIndex === 0 ? 'sticky left-0 bg-slate-900 z-10' : ''}`}>
-                    <span title={columnsTitle[key] || key}>{key}</span>
-                  </th>
-                ))}
-              </tr>
-            </thead>
-
-            <tbody>
-              {financials.map((financial, rowIndex) => (
-                <tr key={financial.Periode || rowIndex} className="hover:bg-slate-800 border-t border-slate-700/50">
-                  {columns.map((key, colIndex) => (
-                    <td key={key} className={`px-3 py-2 text-xs sm:text-sm text-left text-slate-300 ${colIndex === 0 ? 'sticky left-0 bg-slate-900 group-hover:bg-slate-800 z-10' : ''}`}>
-                      {financial[key]}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }
