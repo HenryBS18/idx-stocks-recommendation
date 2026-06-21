@@ -94,3 +94,5 @@ export type BroksumTableProps = {
   broksum: Broksum | null
   isLoading: boolean
 }
+
+export type Timeframe = "short" | "medium" | "long"

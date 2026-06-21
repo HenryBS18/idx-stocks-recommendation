@@ -8,7 +8,7 @@ import ErrorState from './components/ErrorState'
 import FinancialTable from './components/FinancialsTable'
 import LoadingState from './components/LoadingState'
 import StockChart from './components/StockChart'
-import { AnalyzeResponse, BalanceSheet, Broksum, Financials, Status, StockList } from './types'
+import { AnalyzeResponse, BalanceSheet, Broksum, Financials, Status, StockList, Timeframe } from './types'
 
 export default function Home() {
   const [ticker, setTicker] = useState("")
@@ -19,7 +19,7 @@ export default function Home() {
   const [stockList, setStockList] = useState<StockList>([])
   const [showDropdown, setShowDropdown] = useState(false)
 
-  const [timeframe, setTimeframe] = useState<"short" | "medium" | "long">("medium")
+  const [timeframe, setTimeframe] = useState<Timeframe>("medium")
 
   const [broksum, setBroksum] = useState<Broksum | null>(null)
   const [financials, setFinancials] = useState<Financials[]>([])
@@ -38,9 +38,10 @@ export default function Home() {
     }
   }
 
-  const handleAnalyze = async (selectedTicker?: string) => {
+  const handleAnalyze = async (selectedTicker?: string, selectedTimeframe?: Timeframe) => {
     try {
       const finalTicker = selectedTicker || ticker
+      const finalTimeframe = selectedTimeframe || timeframe
 
       setStatus("loading")
       setErrorMessage("")
@@ -62,7 +63,7 @@ export default function Home() {
         },
         body: JSON.stringify({
           ticker: finalTicker,
-          timeframe: timeframe,
+          timeframe: finalTimeframe,
         }),
       })
 
@@ -119,19 +120,25 @@ export default function Home() {
     const fetchBroksum = async () => {
       setIsBroksumLoading(true)
 
-      const response = await fetch(`/api/stock/${ticker}/broksum`)
+      const response = await fetch(`/api/stock/${ticker}/broksum?timeframe=${timeframe}`)
       const result = await response.json() as Broksum
-
       setBroksum(result)
+
       setIsBroksumLoading(false)
     }
+
+    fetchBroksum()
+  }, [ticker, timeframe])
+
+  useEffect(() => {
+    if (ticker === '') return
 
     const fetchFundamental = async () => {
       setIsFundamentalLoading(true)
 
       const [financialsResponse, balanceSheetResponse] = await Promise.all([
-        await fetch(`/api/stock/${ticker}/financials`),
-        await fetch(`/api/stock/${ticker}/balance-sheet`)
+        fetch(`/api/stock/${ticker}/financials`),
+        fetch(`/api/stock/${ticker}/balance-sheet`)
       ])
 
       const financialsResult = await financialsResponse.json()
@@ -139,10 +146,10 @@ export default function Home() {
 
       setFinancials(financialsResult)
       setBalanceSheet(balanceSheetResult)
+
       setIsFundamentalLoading(false)
     }
 
-    fetchBroksum()
     fetchFundamental()
   }, [ticker])
 
@@ -160,7 +167,7 @@ export default function Home() {
       </header>
 
       <section className="mb-4">
-        <div className="flex items-center gap-2 mb-2 px-1">
+        <div className="flex items-center gap-2 mb-1 px-1">
           <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"          >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
@@ -178,7 +185,7 @@ export default function Home() {
 
                 setTimeframe(tf)
                 if (status === "done" && ticker) {
-                  handleAnalyze(ticker)
+                  handleAnalyze(ticker, tf)
                 }
               }}
               className={`flex-1 py-2 text-xs sm:text-sm font-medium rounded-lg transition-colors cursor-pointer ${timeframe === tf
@@ -193,7 +200,7 @@ export default function Home() {
       </section>
 
       <section className="relative mb-8">
-        <div className="flex items-center gap-2 mb-2 px-1">
+        <div className="flex items-center gap-2 mb-1 px-1">
           <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"          >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
