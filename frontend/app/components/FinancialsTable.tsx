@@ -4,15 +4,15 @@ export default function FinancialTable({ financials, isLoading }: FinancialTable
   const columns: (keyof Financials)[] = [
     "date",
     "Laba Bersih",
+    "NPM",
     "Pendapatan Total",
     "Beban Operasional",
     "Laba Operasional",
+    "OPM",
     "EBITDA",
     "Laba Sebelum Pajak",
     "Pendapatan Bunga",
     "Beban Bunga",
-    "NPM",
-    "OPM",
   ]
 
   return (

@@ -3,13 +3,13 @@ import { BalanceSheet, BalanceSheetTableProps } from '../types'
 export default function BalanceSheetTable({ balanceSheet, isLoading }: BalanceSheetTableProps) {
   const columns: (keyof BalanceSheet)[] = [
     "date",
-    "Total Ekuitas",
     "Total Aset",
     "Total Liabilitas",
-    "PER",
-    "PBV",
+    "Total Ekuitas",
     "DER",
     "ROE",
+    "PBV",
+    "PER",
     "EPS",
     "Kas dan Setara Kas",
     "Piutang Usaha",
