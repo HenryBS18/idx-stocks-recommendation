@@ -2,7 +2,7 @@ import { BalanceSheet, BalanceSheetTableProps } from '../types'
 
 export default function BalanceSheetTable({ balanceSheet, isLoading }: BalanceSheetTableProps) {
   const columns: (keyof BalanceSheet)[] = [
-    "date",
+    "Periode",
     "Total Aset",
     "Total Liabilitas",
     "Total Ekuitas",
@@ -16,6 +16,14 @@ export default function BalanceSheetTable({ balanceSheet, isLoading }: BalanceSh
     "Aset Tetap Bersih",
     "Saldo Laba"
   ]
+
+  const columnsTitle: Partial<Record<string, string>> = {
+    'DER': 'Debt to Equity Ratio',
+    'ROE': 'Return on Equity',
+    'PBV': 'Price to Book Value',
+    'PER': 'Price to Earning Ratio',
+    'EPS': 'Earnings Per Share',
+  }
 
   return (
     <div className="max-w-fit">
@@ -62,7 +70,7 @@ export default function BalanceSheetTable({ balanceSheet, isLoading }: BalanceSh
               <tr>
                 {columns.map((key, colIndex) => (
                   <th key={key} className={`px-3 py-2 text-left text-xs sm:text-sm font-semibold text-slate-400 text-nowrap ${colIndex === 0 ? 'sticky left-0 bg-slate-900 z-10' : ''}`}>
-                    {key}
+                    <span title={columnsTitle[key] || key} >{key}</span>
                   </th>
                 ))}
               </tr>
@@ -70,7 +78,7 @@ export default function BalanceSheetTable({ balanceSheet, isLoading }: BalanceSh
 
             <tbody>
               {balanceSheet.map((row, rowIndex) => (
-                <tr key={row.date || rowIndex} className="hover:bg-slate-800 border-t border-slate-700/50">
+                <tr key={row.Periode || rowIndex} className="hover:bg-slate-800 border-t border-slate-700/50">
                   {columns.map((key, colIndex) => (
                     <td key={key} className={`px-3 py-2 text-xs sm:text-sm text-left text-slate-300 ${colIndex === 0 ? 'sticky left-0 bg-slate-900 group-hover:bg-slate-800 z-10' : ''}`}>
                       {row[key]}

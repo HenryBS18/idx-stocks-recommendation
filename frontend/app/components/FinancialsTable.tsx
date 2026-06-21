@@ -2,7 +2,7 @@ import { Financials, FinancialTableProps } from '../types'
 
 export default function FinancialTable({ financials, isLoading }: FinancialTableProps) {
   const columns: (keyof Financials)[] = [
-    "date",
+    "Periode",
     "Laba Bersih",
     "NPM",
     "Pendapatan Total",
@@ -14,6 +14,12 @@ export default function FinancialTable({ financials, isLoading }: FinancialTable
     "Pendapatan Bunga",
     "Beban Bunga",
   ]
+
+  const columnsTitle: Partial<Record<string, string>> = {
+    'NPM': 'Net Profit Margin',
+    'OPM': 'Operating Progit Margin',
+    'EBITDA': 'Earnings Before Interest, Taxes, Depreciation, and Amortization',
+  }
 
   return (
     <div className="max-w-fit">
@@ -60,7 +66,7 @@ export default function FinancialTable({ financials, isLoading }: FinancialTable
               <tr>
                 {columns.map((key, colIndex) => (
                   <th key={key} className={`px-3 py-2 text-left text-xs sm:text-sm font-semibold text-slate-400 text-nowrap ${colIndex === 0 ? 'sticky left-0 bg-slate-900 z-10' : ''}`}>
-                    {key}
+                    <span title={columnsTitle[key] || key}>{key}</span>
                   </th>
                 ))}
               </tr>
@@ -68,7 +74,7 @@ export default function FinancialTable({ financials, isLoading }: FinancialTable
 
             <tbody>
               {financials.map((financial, rowIndex) => (
-                <tr key={financial.date || rowIndex} className="hover:bg-slate-800 border-t border-slate-700/50">
+                <tr key={financial.Periode || rowIndex} className="hover:bg-slate-800 border-t border-slate-700/50">
                   {columns.map((key, colIndex) => (
                     <td key={key} className={`px-3 py-2 text-xs sm:text-sm text-left text-slate-300 ${colIndex === 0 ? 'sticky left-0 bg-slate-900 group-hover:bg-slate-800 z-10' : ''}`}>
                       {financial[key]}

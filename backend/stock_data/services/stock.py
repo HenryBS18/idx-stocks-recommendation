@@ -152,7 +152,7 @@ class StockService:
 		dt_index = pd.to_datetime(df_final.index)
 		df_final.index = dt_index.year.astype(str) + ' Q' + dt_index.quarter.astype(str)
 
-		df_final.to_csv(file_path, index_label='date')
+		df_final.to_csv(file_path, index_label='Periode')
 
 		delete_file_later(file_path)
 
@@ -239,7 +239,7 @@ class StockService:
 		dt_index = pd.to_datetime(df_final.index)
 		df_final.index = dt_index.year.astype(str) + ' Q' + dt_index.quarter.astype(str)
 
-		df_final.to_csv(file_path, float_format='%.2f', index_label='date')
+		df_final.to_csv(file_path, float_format='%.2f', index_label='Periode')
 
 		delete_file_later(file_path)
 

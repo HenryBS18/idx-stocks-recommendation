@@ -51,7 +51,7 @@ export type Broksum = {
 }
 
 export type Financials = {
-  "date": string
+  "Periode": string
   "NPM": string
   "OPM": string
   "Pendapatan Total": string
@@ -65,7 +65,7 @@ export type Financials = {
 }
 
 export type BalanceSheet = {
-  "date": string
+  "Periode": string
   "EPS": string
   "PER": string
   "PBV": string
