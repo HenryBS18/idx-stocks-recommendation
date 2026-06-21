@@ -29,8 +29,15 @@ class StockService:
 
 		yf_ticker = yf.Ticker(f'{ticker.upper()}.JK')
 
+		price_days = {
+			'short': 90,
+			'medium': 180,
+			'long': 365,
+			'chart': 1820
+		}
+
 		end_date = datetime.now() + timedelta(days=1)
-		start_date = end_date - timedelta(days=90 if timeframe == 'short' else 1820)
+		start_date = end_date - timedelta(days=price_days[timeframe])
 
 		df = yf_ticker.history(
 			start=start_date.strftime('%Y-%m-%d'),
