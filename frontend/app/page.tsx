@@ -341,7 +341,7 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="mb-3 space-y-2">
+            <div className="mb-3">
               <h2 className='text-xl'>Teknikal</h2>
 
               <StockChart ticker={ticker} support={data?.support} resistance={data?.resistance} />
