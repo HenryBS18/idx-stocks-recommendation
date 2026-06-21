@@ -43,6 +43,7 @@ export default function Home() {
       setStatus("loading")
       setErrorMessage("")
       setData(undefined)
+      setShowDropdown(false)
       setSearch(finalTicker)
       setTicker(finalTicker)
 
@@ -166,10 +167,7 @@ export default function Home() {
                 <button
                   key={stock.ticker}
                   className="w-full px-4 py-3 text-left cursor-pointer hover:bg-slate-800"
-                  onClick={() => {
-                    setShowDropdown(false)
-                    handleAnalyze(stock.ticker)
-                  }}
+                  onClick={() => handleAnalyze(stock.ticker)}
                 >
                   <div className="font-medium">
                     {stock.ticker}
