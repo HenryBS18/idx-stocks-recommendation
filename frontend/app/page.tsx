@@ -407,11 +407,13 @@ export default function Home() {
 
               <p className='text-slate-300 mb-2'>{data?.news.text}</p>
 
-              <p className='text-slate-200'>Sumber:</p>
+              <p className='text-slate-400 text-sm font-semibold'>Sumber:</p>
               <ul>
-                {data?.news.sources.map((source, i) => (
+                {data?.news.sources.length !== 0 ? data?.news.sources.map((source, i) => (
                   <li key={i}><Link className='text-blue-300' href={source} target='_blank'>{source}</Link></li>
-                ))}
+                )) : (
+                  <p className='text-sm text-slate-400'>Sumber tidak tersedia saat ini.</p>
+                )}
               </ul>
             </div>
 
