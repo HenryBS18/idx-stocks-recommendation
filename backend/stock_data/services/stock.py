@@ -232,7 +232,7 @@ class StockService:
 
 		return file_path, filename
 
-	def get_broker_summary(self, ticker: str) -> tuple[str, str]:
+	def get_broker_summary(self, ticker: str, timeframe: str) -> tuple[str, str]:
 		filename = f'{ticker.upper()}_broker_summary_{uuid.uuid4()}.csv'
 		file_path = os.path.join(self.dir_name, filename)
 
@@ -244,7 +244,7 @@ class StockService:
 		if ticker_valid == None:
 			raise Exception
 
-		broksum_html_str = self.get_broker_summary_raw(ticker)['broksum']
+		broksum_html_str = self.get_broker_summary_raw(ticker, timeframe)['broksum']
 
 		soup = BeautifulSoup(broksum_html_str, 'html.parser')
 		rows = soup.select('tbody tr')
@@ -295,14 +295,23 @@ class StockService:
 
 		return file_path, filename
 	
-	def get_broker_summary_raw(self, ticker: str) -> dict[str, str]:
+	def get_broker_summary_raw(self, ticker: str, timeframe: str) -> dict[str, str]:
 		url = os.getenv('NEOBDM_URL')
 		session_id = os.getenv('NEOBDM_SESSIONID')
 		csrf_token = os.getenv('NEOBDM_CSRF_TOKEN')
 		csrf_middleware_token = os.getenv('NEOBDM_CSRF_MIDDLEWARE_TOKEN')
 
+		broksum_days = {
+			'short': 7,
+			'month': 30,
+			'medium': 90,
+			'long': 180,
+			'year': 365,
+			'ytd': datetime.now().timetuple().tm_yday
+		}
+
 		end_date = datetime.now() + timedelta(days=1)
-		start_date = end_date - timedelta(days=90)
+		start_date = end_date - timedelta(days=broksum_days[timeframe])
 
 		data = {
 			'tick': ticker,

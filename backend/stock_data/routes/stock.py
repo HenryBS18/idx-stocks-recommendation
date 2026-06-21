@@ -64,9 +64,10 @@ def get_balance_sheet_route(ticker: str):
 def get_broker_summary_route(ticker: str):
 	try:
 		type = request.args.get('type', default='csv')
+		timeframe = request.args.get('timeframe', default='medium')
 
 		if type == 'csv':
-			file_path, filename = stock_service.get_broker_summary(ticker)
+			file_path, filename = stock_service.get_broker_summary(ticker, timeframe)
 
 			return send_file(
 				file_path,
@@ -75,7 +76,7 @@ def get_broker_summary_route(ticker: str):
 				mimetype='text/csv'
 			)
 		
-		broksum_raw = stock_service.get_broker_summary_raw(ticker)
+		broksum_raw = stock_service.get_broker_summary_raw(ticker, timeframe)
 
 		return broksum_raw
 	except Exception as e:
