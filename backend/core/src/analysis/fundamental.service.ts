@@ -1,4 +1,4 @@
-import { FundamentalAnalysis } from '@app/types'
+import { FundamentalAnalysis, Timeframe } from '@app/types'
 import { getCsv, parseJson } from '@app/utils'
 import { cacheTTL } from '@app/utils/cache-ttl'
 import { File } from '@google/genai'
@@ -17,18 +17,54 @@ export class FundamentalService {
     private readonly env: EnvService,
   ) { }
 
-  async getAnalysis(ticker: string): Promise<FundamentalAnalysis> {
+  async getAnalysis(ticker: string, timeframe: Timeframe): Promise<FundamentalAnalysis> {
     Logger.debug('Hit', FundamentalService.name)
 
-    const cacheKey = `${ticker}-fundamental`
+    const cacheKey = `${ticker}-fundamental-${timeframe}`
 
     if (this.env.CACHE_ENABLED) {
       const cachedFundamentalAnalysis = await this.cacheManager.get<FundamentalAnalysis>(cacheKey)
       if (cachedFundamentalAnalysis) return cachedFundamentalAnalysis
     }
 
+    let timeframeContext = ''
+
+    switch (timeframe) {
+      case 'short':
+        timeframeContext = `
+          SUDUT PANDANG: Trading Jangka Pendek / Day Trading (1 hari - 1 minggu).
+          FOKUS UTAMA: Faktor keamanan (safety net) dan katalis instan. 
+          - Investor jangka pendek hanya perlu tahu: Apakah perusahaan ini aman dari risiko gagal bayar mendadak? 
+          - Soroti posisi Likuiditas (Kas vs Utang Berbunga pendek) secara kilat.
+          - Perhatikan apakah ada lonjakan EPS atau Laba Bersih mendadak di kuartal terakhir yang bisa memicu momentum kenaikan harga saham akibat kejutan pasar (earnings surprise).
+          - Abaikan analisis valuasi historis yang terlalu mendalam.
+        `
+        break
+      case 'medium':
+        timeframeContext = `
+          SUDUT PANDANG: Swing Trading Jangka Menengah (2 minggu - 3 bulan).
+          FOKUS UTAMA: Tren pertumbuhan kuartalan (QoQ) dan stabilitas margin.
+          - Analisis apakah Pendapatan Total dan Laba Bersih menunjukkan tren naik atau berbalik arah (turnaround) dalam 3 kuartal terakhir.
+          - Perhatikan kesehatan rasio DER dan efisiensi beban (OPM/NPM) untuk memastikan perusahaan tidak mengalami pemburukan kinerja selama posisi trading sedang di-hold beberapa minggu ke depan.
+          - Berikan penilaian sekilas apakah harga saat ini (PER/PBV) wajar untuk target swing.
+        `
+        break
+      case 'long':
+        timeframeContext = `
+          SUDUT PANDANG: Investasi Jangka Panjang (di atas 6 bulan / Value & Growth Investing).
+          FOKUS UTAMA: Struktur modal, kekuatan bisnis inti, dan Valuasi.
+          - Analisis secara komprehensif kekuatan finansial jangka panjang perusahaan.
+          - Evaluasi konsistensi profitabilitas (ROE) dan akumulasi kekayaan melalui Saldo Laba.
+          - Bedah struktur modal (DER) secara ketat apakah tergolong konservatif atau terlalu berisiko.
+          - Berikan analisis mendalam mengenai Valuasi (PER dan PBV) saat ini dibandingkan dengan pertumbuhan kinerjanya. Berikan kesimpulan tegas apakah saham ini tergolong murah (undervalued), wajar (fair value), atau sudah kemahalan (overvalued) untuk dikoleksi jangka panjang.
+        `
+        break
+      default:
+        timeframeContext = 'SUDUT PANDANG: Analisis umum standar korporasi.'
+    }
+
     const prompt = `
-      Data berikut adalah laporan keuangan (financials) dan neraca keuangan (balance sheet) kuartalan selama 4-5 kuartal terakhir.
+      Data berikut adalah laporan keuangan (financials) dan neraca keuangan (balance sheet) kuartalan selama 4-5 kuartal terakhir untuk saham ${ticker}.
 
       Nama Kolom Laporan Keuangan (Financials):
       date, NPM, OPM, Pendapatan Total, Laba Operasional, EBITDA, Laba Bersih, Laba Sebelum Pajak, Penyisihan Pajak, Beban Operasional, Beban Bunga, Pendapatan Bunga
@@ -36,30 +72,34 @@ export class FundamentalService {
       Nama Kolom Neraca Keuangan (Balance Sheet):
       date, EPS, PER, PBV, ROE, DER, Total Aset, Kas dan Setara Kas, Piutang Usaha, Aset Tetap Bersih, Goodwill dan Aset Takberwujud, Total Liabilitas, Total Utang Berbunga, Utang Usaha, Total Ekuitas, Saldo Laba
 
-      Tugas:
+      KONTEKS STRATEGI PENGGUNA:
+      ${timeframeContext}
+
+      TUGAS UTAMA:
       - Analisis tren laporan keuangan antar kuartal (Pendapatan, profitabilitas, efisiensi beban)
       - Analisis kesehatan neraca keuangan (likuiditas, solvabilitas, struktur modal)
       - Interpretasikan rasio keuangan kunci yang sudah tersedia di dalam data
 
       Aturan analisis laporan keuangan (Financials):
       - Bandingkan tren Pendapatan Total, Laba Operasional, EBITDA, dan Laba Bersih antar kuartal.
-      - Analisis tren margin profitabilitas menggunakan kolom NPM dan OPM yang sudah tersedia (apakah membaik, memburuk, atau stabil).
-      - Perhatikan dampak dari Beban Operasional, Beban Bunga, atau Pendapatan Bunga terhadap profitabilitas inti perusahaan.
+      - Analisis tren margin profitabilitas menggunakan kolom NPM dan OPM yang sudah tersedia.
+      - Perhatikan dampak dari Beban Operasional atau Beban Bunga terhadap profitabilitas inti perusahaan.
 
       Aturan analisis neraca keuangan (Balance Sheet):
       - Analisis tren pertumbuhan EPS (Earning Per Share) dari kuartal ke kuartal.
-      - Nilai tingkat utang dan struktur modal menggunakan rasio DER (Debt-to-Equity Ratio) yang tersedia. Sebutkan apakah struktur modal tergolong konservatif, moderat, atau agresif.
+      - Nilai tingkat utang dan struktur modal menggunakan rasio DER yang tersedia. Sebutkan apakah struktur modal tergolong konservatif, moderat, atau agresif.
       - Bandingkan posisi Kas dan Setara Kas vs Total Utang Berbunga untuk menilai likuiditas jangka pendek dan risiko gagal bayar.
       - Perhatikan tren Saldo Laba sebagai indikator profitabilitas historis yang diakumulasikan.
-      - Berikan pandangan singkat mengenai valuasi saham saat ini berdasarkan angka PER dan PBV yang tersedia.
+      - Berikan pandangan mengenai valuasi saham saat ini berdasarkan angka PER dan PBV yang tersedia.
 
       Aturan fallback:
       - Jika laporan keuangan tidak tersedia atau kosong: "financials": "Data laporan keuangan tidak tersedia saat ini"
       - Jika neraca keuangan tidak tersedia atau kosong: "balanceSheet": "Data neraca keuangan tidak tersedia saat ini"
 
       Aturan ringkasan:
-      - Gunakan Bahasa Indonesia yang mudah dipahami oleh investor.
+      - Gunakan Bahasa Indonesia yang mudah dipahami oleh investor/trader.
       - Jangan sebut angka mentah yang terlalu panjang — gunakan deskripsi relatif (meningkat X%, margin sehat, valuasi premium/murah, dll).
+      - WAJIB menyesuaikan bobot detail, penekanan poin, dan gaya bahasa tulisan dengan KONTEKS STRATEGI PENGGUNA yang diminta di atas.
 
       Format output wajib JSON:
       {

@@ -1,4 +1,4 @@
-import { NewsAnalysisResult } from '@app/types'
+import { NewsAnalysisResult, Timeframe } from '@app/types'
 import { cacheTTL } from '@app/utils/cache-ttl'
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager'
 import { Inject, Injectable, Logger } from '@nestjs/common'
@@ -14,10 +14,10 @@ export class NewsService {
     private readonly env: EnvService,
   ) { }
 
-  async getAnalysis(ticker: string): Promise<NewsAnalysisResult> {
+  async getAnalysis(ticker: string, timeframe: Timeframe): Promise<NewsAnalysisResult> {
     Logger.debug('Hit', NewsService.name)
 
-    const cacheKey = `${ticker}-news`
+    const cacheKey = `${ticker}-news-${timeframe}`
 
     if (this.env.CACHE_ENABLED) {
       const cachedNewsAnalysis = await this.cacheManager.get<NewsAnalysisResult>(cacheKey)
@@ -30,8 +30,43 @@ export class NewsService {
       year: 'numeric'
     })
 
+    let timeframeContext = ''
+
+    switch (timeframe) {
+      case 'short':
+        timeframeContext = `
+          STRATEGI: Trading Jangka Pendek / Day Trading (1 hari - 1 minggu).
+          FOKUS UTAMA: Katalis instan, berita terhangat, sentimen harian, dan rumor pasar yang memicu volatilitas tinggi.
+          - Prioritaskan berita yang rilis dalam 24-72 jam terakhir (misal: rilis laporan keuangan hari ini, aksi korporasi mendadak, pergantian direksi, atau berita regulasi instan).
+          - Fokus pada dampak langsung terhadap pergerakan harga saham esok hari atau minggu ini.
+          - Abaikan berita makroekonomi yang dampaknya baru terasa beberapa bulan lagi.
+        `
+        break
+      case 'medium':
+        timeframeContext = `
+          STRATEGI: Swing Trading Jangka Menengah (2 minggu - 3 bulan).
+          FOKUS UTAMA: Sentimen tren sektoral, rilis data bulanan, dan pengumuman korporasi berkala.
+          - Cari perkembangan proyek berjalan, tren harga komoditas yang relevan dengan emiten, serta pengumuman rebalancing indeks global (MSCI, FTSE) yang akan efektif dalam beberapa minggu ke depan.
+          - Analisis bagaimana berita tersebut memengaruhi prospek kinerja emiten untuk 1-2 kuartal ke depan.
+        `
+        break
+      case 'long':
+        timeframeContext = `
+          STRATEGI: Investasi Jangka Panjang (di atas 6 bulan / Value Investing).
+          FOKUS UTAMA: Kebijakan makroekonomi, regulasi pemerintah jangka panjang, rencana ekspansi multi-tahun, dan prospek industri global.
+          - Soroti berita terkait investasi strategis baru, pembangunan pabrik/infrastruktur, isu tata kelola (ESG), atau perubahan lanskap industri yang mengubah fundamental emiten secara struktural.
+          - Abaikan fluktuasi atau sentimen negatif harian jika tidak mengubah prospek bisnis jangka panjang perusahaan.
+        `
+        break
+      default:
+        timeframeContext = 'STRATEGI: Analisis umum seputar emiten terkait.'
+    }
+
     const prompt = `
       Hari ini adalah ${today}. Gunakan ini sebagai referensi waktu, bukan filter ketat.
+
+      KONTEKS STRATEGI PENGGUNA:
+      ${timeframeContext}
 
       Cakupan pencarian (urutan prioritas):
       - Berita langsung tentang emiten ${ticker}
@@ -41,23 +76,22 @@ export class NewsService {
         yang mencakup ${ticker}, terlepas dari kapan review itu diumumkan
 
       Aturan umum:
-      - Utamakan berita paling baru yang tersedia, idealnya hari ini (${today})
-      - Jika belum ada berita hari ini, ambil yang paling mendekati
-      - Fokus pada informasi yang relevan dengan pergerakan atau prospek saham ${ticker}
-      - Jangan sebut tanggal spesifik dalam ringkasan, gunakan frasa "berita terbaru"
-      - Isi ringkasan hanya dari data berita saja, TIDAK BOLEH hasil karangan
-      - Tulis ringkasan yang informatif, maksimal 1000 karakter
+      - Utamakan berita paling baru yang tersedia yang relevan dengan KONTEKS STRATEGI PENGGUNA di atas.
+      - Fokus pada informasi yang relevan dengan pergerakan atau prospek saham ${ticker}.
+      - Jangan sebut tanggal spesifik dalam ringkasan, gunakan frasa seperti "berita terbaru", "sentimen jangka pendek", atau "prospek jangka panjang".
+      - Isi ringkasan hanya dari data berita saja, TIDAK BOLEH hasil karangan.
+      - Tulis ringkasan yang informatif, maksimal 1000 karakter.
 
       Aturan KHUSUS indeks global — ikuti dengan ketat:
       - HANYA sebut indeks global jika kamu menemukan hasil review atau rebalancing
         yang secara eksplisit menyebut ${ticker} masuk, keluar, upgrade, downgrade,
-        atau perubahan bobot
+        atau perubahan bobot.
       - Jika tidak menemukan hasil review tersebut, HAPUS seluruh kalimat tentang
         indeks global dari ringkasan — jangan ganti dengan kalimat "tidak ada perubahan",
-        "belum terdapat laporan", atau kalimat sejenis
+        "belum terdapat laporan", atau kalimat sejenis.
 
       Format output:
-      Tuliskan ringkasan berita secara naratif langsung dalam bentuk paragraf teks biasa. Jangan gunakan format JSON atau markdown aneh.
+      Tuliskan ringkasan berita secara naratif langsung dalam bentuk paragraf teks biasa. Jangan gunakan format JSON atau markdown aneh. Sesuaikan gaya penulisan dan penekanan poin dengan KONTEKS STRATEGI PENGGUNA yang diminta.
     `
 
     const response = await this.aiService.generateContent({
@@ -81,7 +115,6 @@ export class NewsService {
     })
 
     const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || []
-    Logger.debug(response.candidates)
 
     const cleanChunks: string[] = (
       await Promise.all(

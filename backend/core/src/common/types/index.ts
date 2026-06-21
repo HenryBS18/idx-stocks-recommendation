@@ -41,12 +41,15 @@ export type SummaryAnalysis = {
   recommendation: string
 }
 
+export type Timeframe = 'short' | 'medium' | 'long'
+
 export type GetSummaryParams = {
   ticker: string
   technical: TechnicalAnalysis
   broker: BrokerAnalysis
   fundamental: FundamentalAnalysis
   news: NewsAnalysis
+  timeframe: Timeframe
 }
 
 export type AnalysisResult = {

@@ -1,5 +1,5 @@
 import { NotFoundError } from '@app/errors'
-import { AnalysisResult } from '@app/types'
+import { AnalysisResult, Timeframe } from '@app/types'
 import { cacheTTL } from '@app/utils/cache-ttl'
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager'
 import { Inject, Injectable, Logger } from '@nestjs/common'
@@ -23,13 +23,13 @@ export class StockService {
 		private readonly summaryService: SummaryService,
 	) { }
 
-	async analyze(ticker: string): Promise<AnalysisResult> {
+	async analyze(ticker: string, timeframe: Timeframe): Promise<AnalysisResult> {
 		Logger.debug('Hit', this.analyze.name)
 
 		try {
 			ticker = ticker.toUpperCase()
 
-			const cacheKey = `${ticker}-analysis`
+			const cacheKey = `${ticker}-analysis-${timeframe}`
 
 			if (this.env.CACHE_ENABLED) {
 				const cachedAnalysis = await this.cacheManager.get<AnalysisResult>(cacheKey)
@@ -42,13 +42,13 @@ export class StockService {
 			if (!stockNameResponse.ok) throw new NotFoundError('Kode saham tidak ditemukan')
 
 			const [technical, broker, fundamental, news] = await Promise.all([
-				this.technicalService.getAnalysis(ticker),
-				this.brokerService.getAnalysis(ticker),
-				this.fundamentalService.getAnalysis(ticker),
-				this.newsService.getAnalysis(ticker)
+				this.technicalService.getAnalysis(ticker, timeframe),
+				this.brokerService.getAnalysis(ticker, timeframe),
+				this.fundamentalService.getAnalysis(ticker, timeframe),
+				this.newsService.getAnalysis(ticker, timeframe)
 			])
 
-			const summary = await this.summaryService.getAnalysis({ ticker, technical, broker, fundamental, news: { news: news.news } })
+			const summary = await this.summaryService.getAnalysis({ ticker, technical, broker, fundamental, news: { news: news.news }, timeframe })
 
 			const returnData: AnalysisResult = {
 				ticker,
