@@ -20,6 +20,7 @@ export default function Home() {
   const [showDropdown, setShowDropdown] = useState(false)
 
   const [timeframe, setTimeframe] = useState<Timeframe>("medium")
+  const [broksumTimeframe, setBroksumTimeframe] = useState<Timeframe>("medium")
 
   const [broksum, setBroksum] = useState<Broksum | null>(null)
   const [financials, setFinancials] = useState<Financials[]>([])
@@ -98,6 +99,16 @@ export default function Home() {
     )
   }).slice(0, 5)
 
+  const fetchBroksum = async (timeframe: Timeframe) => {
+    setIsBroksumLoading(true)
+
+    const response = await fetch(`/api/stock/${ticker}/broksum?timeframe=${timeframe}`)
+    const result = await response.json() as Broksum
+    setBroksum(result)
+
+    setIsBroksumLoading(false)
+  }
+
   useEffect(() => {
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') setShowDropdown(false)
@@ -117,18 +128,20 @@ export default function Home() {
   useEffect(() => {
     if (ticker === '') return
 
-    const fetchBroksum = async () => {
-      setIsBroksumLoading(true)
+    setBroksumTimeframe(timeframe)
+  }, [ticker])
 
-      const response = await fetch(`/api/stock/${ticker}/broksum?timeframe=${timeframe}`)
-      const result = await response.json() as Broksum
-      setBroksum(result)
+  useEffect(() => {
+    if (ticker === '') return
 
-      setIsBroksumLoading(false)
-    }
-
-    fetchBroksum()
+    fetchBroksum(timeframe)
   }, [ticker, timeframe])
+
+  useEffect(() => {
+    if (ticker === '') return
+
+    fetchBroksum(broksumTimeframe)
+  }, [broksumTimeframe])
 
   useEffect(() => {
     if (ticker === '') return
@@ -352,7 +365,7 @@ export default function Home() {
                 <p className='text-slate-300'>{data?.trend}</p>
               </div>
 
-              <div className='flex gap-x-6'>
+              <div className='flex gap-x-6 mb-2'>
                 <div>
                   <h3>Support</h3>
 
@@ -384,7 +397,7 @@ export default function Home() {
             <div className="mb-3">
               <h2 className='text-xl'>Bandarmologi</h2>
 
-              <BroksumTable broksum={broksum} isLoading={isBroksumLoading} />
+              <BroksumTable broksum={broksum} isLoading={isBroksumLoading} activePeriod={broksumTimeframe} onPeriodChange={(newPeriod) => setBroksumTimeframe(newPeriod)} />
               <p className='text-slate-300'>{data?.brokerSummary}</p>
             </div>
 

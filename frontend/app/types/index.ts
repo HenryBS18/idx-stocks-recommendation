@@ -90,9 +90,11 @@ export type BalanceSheetTableProps = {
   isLoading: boolean
 }
 
+export type Timeframe = "short" | "medium" | "long" | "month" | "year" | "ytd"
+
 export type BroksumTableProps = {
   broksum: Broksum | null
   isLoading: boolean
+  activePeriod: Timeframe
+  onPeriodChange: (period: Timeframe) => void
 }
-
-export type Timeframe = "short" | "medium" | "long"
