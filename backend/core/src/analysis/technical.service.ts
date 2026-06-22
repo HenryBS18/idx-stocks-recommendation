@@ -32,7 +32,7 @@ export class TechnicalService {
 
 		switch (timeframe) {
 			case 'short':
-				dataDuration = 'tiga bulan terakhir'
+				dataDuration = 'enam bulan terakhir'
 				maRules = 'moving average 5 (MA5) dan 20 (MA20) periode untuk mendeteksi momentum cepat'
 				strategyContext = 'Fokus pada pergerakan jangka pendek (1 hari - 1 minggu). Identifikasi level support/resistance minor terdekat untuk kebutuhan fast-trade atau day trading.'
 				break
@@ -42,12 +42,12 @@ export class TechnicalService {
 				strategyContext = 'Fokus pada struktur tren swing trading (2 minggu - 3 bulan). Cari pola pembalikan arah (reversal) atau kelanjutan tren (continuation) berdasarkan higher high / lower low yang lebih terkonfirmasi.'
 				break
 			case 'long':
-				dataDuration = 'satu tahun terakhir'
+				dataDuration = 'enam bulan terakhir'
 				maRules = 'moving average 50 (MA50) dan 200 (MA200) periode untuk mendeteksi tren makro (misal: Golden Cross atau Death Cross)'
 				strategyContext = 'Fokus pada siklus besar investasi jangka panjang (di atas 6 bulan). Cari area major support/resistance historis untuk menentukan apakah harga berada di area bottoming atau sudah di pucuk.'
 				break
 			default:
-				dataDuration = 'tiga bulan terakhir'
+				dataDuration = 'enam bulan terakhir'
 				maRules = 'moving average 20 dan 50 periode'
 				strategyContext = 'Fokus pada tren pergerakan harga secara umum.'
 		}
@@ -60,7 +60,7 @@ export class TechnicalService {
 			- Validasi area Support & Resistance berdasarkan titik swing high/low yang minimal pernah diuji/disentuh 2 kali pada periode data.
 			- Level Support harus <= harga terakhir dan >= harga terendah keseluruhan di periode ini.
 			- Level Resistance harus >= harga terakhir dan <= harga tertinggi keseluruhan di periode ini.
-			- Batasi maksimal 3 level untuk masing-masing Support & Resistance, dengan jarak antar level minimal 3%. Format berupa range angka bulat tanpa desimal (Contoh: "1000 - 1050"), diurutkan dari nilai terkecil ke terbesar.
+			- Batasi maksimal 5 level untuk masing-masing Support & Resistance, dengan jarak antar level minimal 5%. Format berupa range angka bulat tanpa desimal (Contoh: "1000 - 1050"), diurutkan dari nilai terkecil ke terbesar.
 
 			PANDUAN EDUKASI INVESTOR PEMULA:
 			- Setiap kali Anda menyebutkan istilah teknikal grafik (seperti Bullish, Bearish, Sideways, Breakout, Breakdown, Golden Cross, Death Cross, Rebound), Anda WAJIB memberikan penjelasan singkat atau analogi ringkas di dalam tanda kurung. (Contoh: "Saham berhasil breakout (menembus batas dinding harga atas)...").
@@ -126,7 +126,7 @@ export class TechnicalService {
 			]
 		}
 
-		const priceHistoricalFilePath = await getCsv(ticker, 'price-historical', timeframe)
+		const priceHistoricalFilePath = await getCsv(ticker, 'price-historical', 'medium')
 
 		try {
 			const [stockLatestPriceDate, priceHistoricalUploadedFile] = await Promise.all([
