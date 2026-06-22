@@ -27,7 +27,7 @@ export default function Home() {
             <select
               value={uiMode}
               onChange={(e) => setUiMode(e.target.value as UIMode)}
-              className={`appearance-none bg-slate-900 border border-slate-700 text-slate-300 text-xs sm:text-sm rounded-lg focus:ring-sky-500 focus:border-sky-500 block w-full sm:max-w-fit px-3 py-1 pr-8 cursor-pointer transition-colors hover:border-slate-500 ${status === 'loading' ? 'opacity-50 cursor-not-allowed' : ''}`}
+              className={'appearance-none bg-slate-900 border border-slate-700 text-slate-300 text-xs sm:text-sm rounded-lg focus:ring-sky-500 focus:border-sky-500 block w-full sm:max-w-fit px-3 py-1 pr-8 cursor-pointer transition-colors hover:border-slate-500'}
             >
               {['Lama', 'Baru'].map((label) => (
                 <option key={label} value={label}>
