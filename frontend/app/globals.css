@@ -65,6 +65,8 @@ body {
 @source inline("{flex,items-center,justify-center}");
 @source inline("{rounded,cursor-pointer}");
 
+@source inline("text-{emerald,rose,amber,sky,slate}-400");
+@source inline("{font-semibold,font-medium}");
 
 @utility text-bold {
   font-weight: 700;

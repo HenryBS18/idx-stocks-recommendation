@@ -73,7 +73,7 @@ export default function Home() {
 
       if (!response.ok) {
         setStatus("error")
-        setErrorMessage(result.message || "Failed to analyze stock")
+        setErrorMessage(result.message || "Analisa saham gagal")
         return
       }
 
@@ -371,7 +371,7 @@ export default function Home() {
 
             <div className="p-5 sm:p-6 space-y-8 divide-y divide-slate-800/60">
 
-              <SummaryCard summary={data?.summary!} />
+              <SummaryCard summary={data?.summary} />
 
               <div className="pt-8">
                 <div className="flex items-center gap-2 mb-4">
@@ -387,7 +387,12 @@ export default function Home() {
                     <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
                       Tren Harga
                     </h3>
-                    <p className='text-slate-200 font-medium'>{data?.trend}</p>
+                    <p className={`font-semibold ${data?.trend === 'Bullish' ? 'text-emerald-400' :
+                      data?.trend === 'Bearish' ? 'text-rose-400' :
+                        data?.trend === 'Sideways' ? 'text-slate-400' : 'text-slate-200'
+                      }`}>
+                      {data?.trend || 'Tren tidak tersedia saat ini.'}
+                    </p>
                   </div>
 
                   <div>
@@ -417,7 +422,7 @@ export default function Home() {
                   </div>
                 </div>
 
-                <p className='text-slate-300 leading-relaxed text-sm md:text-base'>{data?.technical}</p>
+                <p className='text-slate-300 leading-relaxed text-sm md:text-base' dangerouslySetInnerHTML={{ __html: data?.technical ?? 'Analisis teknikal tidak tersedia saat ini.' }} />
               </div>
 
               <div className="pt-8">
@@ -426,7 +431,7 @@ export default function Home() {
                   <BroksumTable broksum={broksum} isLoading={isBroksumLoading} activePeriod={broksumTimeframe} onPeriodChange={(newPeriod) => setBroksumTimeframe(newPeriod)} />
                 </div>
                 <div className="bg-sky-950/20 border-l-2 border-sky-500 p-4 rounded-r-lg mt-4">
-                  <p className='text-slate-300 leading-relaxed text-sm md:text-base'>{data?.brokerSummary}</p>
+                  <p className='text-slate-300 leading-relaxed text-sm md:text-base' dangerouslySetInnerHTML={{ __html: data?.brokerSummary ?? 'Analisis bandarmologi tidak tersedia saat ini.' }} />
                 </div>
               </div>
 
@@ -436,12 +441,12 @@ export default function Home() {
                 <div className='grid grid-cols-1 lg:grid-cols-2 gap-8'>
                   <div className='space-y-4'>
                     <FinancialTable financials={financials} isLoading={isFundamentalLoading} />
-                    <p className='text-slate-300 leading-relaxed text-sm bg-slate-800/30 p-4 rounded-lg border border-slate-800/50'>{data?.financials}</p>
+                    <p className='text-slate-300 leading-relaxed text-sm bg-slate-800/30 p-4 rounded-lg border border-slate-800/50' dangerouslySetInnerHTML={{ __html: data?.financials ?? 'Analisis pendapatan tidak tersedia saat ini.' }} />
                   </div>
 
                   <div className='space-y-4'>
                     <BalanceSheetTable balanceSheet={balanceSheet} isLoading={isFundamentalLoading} />
-                    <p className='text-slate-300 leading-relaxed text-sm bg-slate-800/30 p-4 rounded-lg border border-slate-800/50'>{data?.balanceSheet}</p>
+                    <p className='text-slate-300 leading-relaxed text-sm bg-slate-800/30 p-4 rounded-lg border border-slate-800/50' dangerouslySetInnerHTML={{ __html: data?.balanceSheet ?? 'Analisis neraca keuangan tidak tersedia saat ini.' }} />
                   </div>
                 </div>
               </div>
@@ -449,10 +454,10 @@ export default function Home() {
               <div className="pt-8">
                 <h2 className='text-xl font-semibold text-white mb-4'>Sentimen Berita Utama</h2>
 
-                <p className='text-slate-300 leading-relaxed md:text-base mb-4'>{data?.news.text}</p>
+                <p className='text-slate-300 leading-relaxed md:text-base mb-4' dangerouslySetInnerHTML={{ __html: data?.news.text ?? 'Analisis berita tidak tersedia saat ini.' }} />
 
                 <div className="bg-slate-950/50 p-4 rounded-lg border border-slate-800">
-                  <p className='text-slate-400 text-xs font-bold uppercase tracking-wider mb-2'>Tautan Sumber Berita</p>
+                  <p className='text-slate-400 text-xs font-bold mb-2'>Tautan Sumber Berita</p>
                   <ul className="space-y-2">
                     {data?.news.sources.length !== 0 ? data?.news.sources.map((source, i) => (
                       <li key={i} className="flex items-center gap-2">
