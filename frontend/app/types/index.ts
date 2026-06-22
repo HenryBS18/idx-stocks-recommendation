@@ -98,3 +98,6 @@ export type BroksumTableProps = {
   activePeriod: Timeframe
   onPeriodChange: (period: Timeframe) => void
 }
+
+
+export type UIMode = 'Lama' | 'Baru'
