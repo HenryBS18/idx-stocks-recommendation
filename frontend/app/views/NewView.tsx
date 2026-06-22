@@ -219,6 +219,7 @@ export default function NewView() {
             setSearch(e.target.value)
             setShowDropdown(true)
           }}
+          disabled={status === 'loading'}
           placeholder="Cari BBCA atau Bank Central Asia"
           className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 focus:outline-none focus:border-blue-500 transition-colors"
           autoComplete="off"
