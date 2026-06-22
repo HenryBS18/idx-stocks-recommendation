@@ -95,3 +95,41 @@ def get_name_route(ticker: str):
 		return {'name': name}
 	except Exception as e:
 		print(f'ERROR [{get_name_route.__name__}] {e}')
+
+@api.get('/stock/<ticker>/financials/sb')
+def get_financials_sb_route(ticker: str):
+	try:
+		file_path, filename = stock_service.get_financials_sb(ticker)
+
+		return send_file(
+			file_path,
+			as_attachment=True,
+			download_name=filename,
+			mimetype='text/csv'
+		)
+	except Exception as e:
+		print(f'ERROR [{get_financials_sb_route.__name__}] {e}')
+  
+		if 'Data belum tersedia' in str(e):
+			return {'message': 'Data belum tersedia'}, 500
+		
+		return {'message': f'{ticker} not found'}, 404
+
+@api.get('/stock/<ticker>/balance-sheet/sb')
+def get_balance_sheet_sb_route(ticker: str):
+	try:
+		file_path, filename = stock_service.get_balance_sheet_sb(ticker)
+
+		return send_file(
+			file_path,
+			as_attachment=True,
+			download_name=filename,
+			mimetype='text/csv'
+		)
+	except Exception as e:
+		print(f'ERROR [{get_balance_sheet_sb_route.__name__}] {e}')
+
+		if 'Data belum tersedia' in str(e):
+			return {'message': 'Data belum tersedia'}, 500
+		
+		return {'message': f'{ticker} not found'}, 404

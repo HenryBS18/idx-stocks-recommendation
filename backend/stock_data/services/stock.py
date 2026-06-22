@@ -372,3 +372,323 @@ class StockService:
 		name = res.json()['name']
 
 		return name
+	
+	def get_financials_sb(self, ticker: str):
+		url = f'{os.getenv("STOCKBIT_API_URL")}/findata-view/company/financial?symbol={ticker}&data_type=1&report_type=1&statement_type=1'
+		token = os.getenv('STOCKBIT_TOKEN')		
+		
+		headers = {
+			'Authorization': f'Bearer {token}',
+			'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+			'Accept': 'application/json, text/plain, */*',
+			'Accept-Language': 'id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7',
+			'Origin': 'https://stockbit.com',
+			'Referer': 'https://stockbit.com/'
+		}
+
+		res = requests.get(
+			url,
+			headers=headers
+		)
+
+		html = res.json()['data']['html_report']
+
+		kuartal_target = [
+			'Q1 2026', 'Q4 2025', 'Q3 2025', 'Q2 2025', 
+			'Q1 2025', 'Q4 2024', 'Q3 2024', 'Q2 2024', 'Q1 2024'
+		]
+
+		konfigurasi_tabel = {
+			'data_table_1': [
+				"Total Pendapatan",
+				'Pemilik Entitas Induk',
+				'Laba Usaha',
+				'Total Beban Usaha',
+				'Laba Sebelum Pajak',
+				'Pendapatan Bunga',
+				'Beban Bunga',
+			],
+			'data_table_keyratio_1': [
+				'EPS (Quarter)',
+				'PE Ratio (Quarter)',
+				'EBITDA (Quarter)',
+				'Return on Assets (Quarter)',
+				'Return on Equity (Quarter)',
+			]
+		}
+
+		rename_columns = {
+			'Pemilik Entitas Induk': 'Laba Bersih',
+			'Laba Usaha': 'Laba Operasional',
+			'Total Beban Usaha': 'Beban Operasional',
+			'EPS (Quarter)': 'EPS',
+			'PE Ratio (Quarter)': 'PER',
+			'EBITDA (Quarter)': 'EBITDA',
+			'Return on Assets (Quarter)': 'ROA',
+			'Return on Equity (Quarter)': 'ROE',
+		}
+
+		file_path, filename = self.extract_multiple_financials(
+			ticker=ticker, 
+			html_string=html, 
+			table_configs=konfigurasi_tabel, 
+			target_quarters=kuartal_target,
+			rename_columns=rename_columns
+		)	
+
+		return file_path, filename
+
+	def get_balance_sheet_sb(self, ticker: str):
+		url = f'{os.getenv("STOCKBIT_API_URL")}/findata-view/company/financial?symbol={ticker}&data_type=1&report_type=2&statement_type=1'
+		token = os.getenv('STOCKBIT_TOKEN')
+
+		headers = {
+			'Authorization': f'Bearer {token}',
+			'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+			'Accept': 'application/json, text/plain, */*',
+			'Accept-Language': 'id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7',
+			'Origin': 'https://stockbit.com',
+			'Referer': 'https://stockbit.com/'
+		}
+
+		res = requests.get(
+			url,
+			headers=headers
+		)
+
+		html = res.json()['data']['html_report']
+
+		kuartal_target = [
+				'Q1 2026', 'Q4 2025', 'Q3 2025', 'Q2 2025', 
+				'Q1 2025', 'Q4 2024', 'Q3 2024', 'Q2 2024', 'Q1 2024'
+		]
+
+		konfigurasi_tabel = {
+			'data_table_1': [
+				'Aset',
+				'Liabilitas',
+				'Ekuitas',
+				'Kas Dan Setara Kas',
+				'Saldo Laba'
+			],
+			'data_table_keyratio_1': [
+				'Price to Book Value (Quarter)',
+			]
+		}
+
+		rename_columns = {
+			'Aset': 'Total Aset',
+			'Liabilitas': 'Total Liabilitas',
+			'Ekuitas': 'Total Ekuitas',
+			'Price to Book Value (Quarter)': 'PBV',
+			'Kas Dan Setara Kas': 'Kas dan Setara Kas',
+		}
+
+		file_path, filename = self.extract_multiple_balance_sheet(
+			ticker=ticker, 
+			html_string=html, 
+			table_configs=konfigurasi_tabel, 
+			target_quarters=kuartal_target,
+			rename_columns=rename_columns
+		)	
+
+		return file_path, filename
+
+	def extract_multiple_financials(self, ticker, html_string, table_configs, target_quarters, rename_columns=None) -> tuple[str, str]:
+		soup = BeautifulSoup(html_string, 'html.parser')
+
+		raw_results = {q: {} for q in target_quarters}
+
+		for table_id, target_metrics in table_configs.items():
+			table = soup.find('table', id=table_id)
+			
+			if not table:
+				print(f"Warning: Tabel {table_id} tidak ditemukan.")
+				continue
+
+			headers = [th.text.strip() for th in table.find('thead').find_all('th')[1:]]
+			
+			for metric in target_metrics:
+				metric_span = table.find('span', attrs={'data-lang-0': metric})
+				
+				if not metric_span:
+					for q in target_quarters:
+						raw_results[q][metric] = None
+					continue
+
+				row = metric_span.find_parent('tr')
+				cells = row.find_all('td', class_=['rowval', 'row-ratio-val'])
+				
+				for header, cell in zip(headers, cells):
+					if header in target_quarters:
+						if metric in ['Return on Assets (Quarter)', 'Return on Equity (Quarter)']:
+							raw_results[header][metric] = float(cell['data-value-idr']) * 4
+						else:
+							raw_results[header][metric] = float(cell['data-value-idr'])
+
+		formatted_result = []
+		for q in target_quarters:
+			data_row = {"Periode": q}
+			data_row.update(raw_results[q])
+			formatted_result.append(data_row)
+
+		if rename_columns and isinstance(rename_columns, dict):
+			for data_row in formatted_result:
+				for old_key, new_key in rename_columns.items():
+					if old_key in data_row:
+						data_row[new_key] = data_row.pop(old_key)
+
+		for data_row in formatted_result:
+			rev = data_row.get("Total Pendapatan")
+			net_inc = data_row.get("Laba Bersih")
+			op_inc = data_row.get("Laba Operasional")
+
+			if rev and net_inc and rev != 0:
+				data_row["NPM"] = round((net_inc / rev) * 100, 2)
+			else:
+				data_row["NPM"] = None
+
+			if rev and op_inc and rev != 0:
+				data_row["OPM"] = round((op_inc / rev) * 100, 2)
+			else:
+				data_row["OPM"] = None
+
+		if formatted_result:
+			all_keys = list(formatted_result[0].keys())
+			keys_to_remove = [
+				key for key in all_keys 
+				if key != "Periode" and all(data_row.get(key) is None for data_row in formatted_result)
+			]
+			for data_row in formatted_result:
+				for key in keys_to_remove:
+					data_row.pop(key, None)
+
+		for data_row in formatted_result:
+			for key, val in data_row.items():
+				if key == "Periode" or val is None:
+					continue
+				
+				if key == 'PER':
+					data_row[key] = f'{val / 4:.2f}x'
+				elif key in ["NPM", "OPM", "RoA", "RoE"]:
+					data_row[key] = f"{val}%"
+				else:
+					data_row[key] = format_number(val)
+
+		data = formatted_result
+		if not data or all(len(row) == 1 for row in data): 
+			print("Gagal menyimpan: Data kosong atau hanya berisi period.")
+			return "", ""
+
+		headers = list(data[0].keys())
+
+		filename = f'{ticker.upper()}_financials_{uuid.uuid4()}.csv'
+		file_path = os.path.join(self.dir_name, filename)
+
+		with open(file_path, mode='w', newline='', encoding='utf-8') as file:
+			writer = csv.DictWriter(file, fieldnames=headers)
+			writer.writeheader()
+			writer.writerows(data)
+
+		return file_path, filename
+
+	def extract_multiple_balance_sheet(self, ticker, html_string, table_configs, target_quarters, rename_columns=None) -> tuple[str, str]:
+		soup = BeautifulSoup(html_string, 'html.parser')
+
+		raw_results = {q: {} for q in target_quarters}
+
+		for table_id, target_metrics in table_configs.items():
+			table = soup.find('table', id=table_id)
+			
+			if not table:
+				print(f"Warning: Tabel {table_id} tidak ditemukan.")
+				continue
+
+			headers = [th.text.strip() for th in table.find('thead').find_all('th')[1:]]
+			
+			for metric in target_metrics:
+				metric_spans = table.find_all('span', attrs={'data-lang-0': metric})
+				
+				row = None
+				cells = None
+				
+				if metric in ['Aset', 'Liabilitas', 'Ekuitas']:
+					target_chart = 'total'
+				else:
+					target_chart = 'default'
+				
+				for span in metric_spans:
+					p_row = span.find_parent('tr')
+					if p_row:
+						chart_icon = p_row.find('i', attrs={'data-chart': target_chart})
+						
+						if chart_icon:
+							row = p_row
+							cells = p_row.find_all('td', class_=['rowval', 'row-ratio-val'])
+							break 
+				
+				if not row and metric_spans:
+					row = metric_spans[0].find_parent('tr')
+					cells = row.find_all('td', class_=['rowval', 'row-ratio-val']) if row else []
+						
+				if not row:
+					for q in target_quarters:
+						raw_results[q][metric] = None
+					continue
+						
+				for header, cell in zip(headers, cells):
+					if header in target_quarters:
+						try:
+							raw_results[header][metric] = float(cell['data-value-idr'])
+						except (ValueError, KeyError, TypeError):
+							raw_results[header][metric] = None
+
+		formatted_result = []
+		for q in target_quarters:
+			data_row = {"Periode": q}
+			data_row.update(raw_results[q])
+			formatted_result.append(data_row)
+
+		if rename_columns and isinstance(rename_columns, dict):
+			for data_row in formatted_result:
+				for old_key, new_key in rename_columns.items():
+					if old_key in data_row:
+						data_row[new_key] = data_row.pop(old_key)
+
+		for data_row in formatted_result:
+			liabilities = data_row.get("Total Liabilitas")
+			equity = data_row.get("Total Ekuitas")
+
+			if liabilities and equity and liabilities != 0:
+				data_row["DER"] = round((liabilities / equity) * 100, 2)
+			else:
+				data_row["DER"] = None
+
+		for data_row in formatted_result:
+			for key, val in data_row.items():
+				if key == "Periode" or val is None:
+					continue
+				
+				if key in ["DER"]:
+					data_row[key] = f"{val}%"
+				elif key in ["PBV"]:
+					data_row[key] = f"{val}x"
+				else:
+					data_row[key] = format_number(val)
+
+		data = formatted_result
+		if not data or all(len(row) == 1 for row in data): 
+			print("Gagal menyimpan: Data kosong atau hanya berisi period.")
+			return "", ""
+
+		headers = list(data[0].keys())
+
+		filename = f'{ticker.upper()}_balance_sheet_{uuid.uuid4()}.csv'
+		file_path = os.path.join(self.dir_name, filename)
+
+		with open(file_path, mode='w', newline='', encoding='utf-8') as file:
+			writer = csv.DictWriter(file, fieldnames=headers)
+			writer.writeheader()
+			writer.writerows(data)
+				
+		return file_path, filename
