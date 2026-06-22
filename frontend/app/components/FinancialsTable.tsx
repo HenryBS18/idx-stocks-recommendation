@@ -1,11 +1,12 @@
 import { Financials, FinancialTableProps } from '../types'
 
 export default function FinancialTable({ financials, isLoading }: FinancialTableProps) {
-  const columns: (keyof Financials)[] = [
+  // 1. Definisikan susunan master kolom sebagai acuan dasar
+  const baseColumns: (keyof Financials)[] = [
     "Periode",
     "Laba Bersih",
     "NPM",
-    "Pendapatan Total",
+    "Total Pendapatan",
     "Beban Operasional",
     "Laba Operasional",
     "OPM",
@@ -15,13 +16,21 @@ export default function FinancialTable({ financials, isLoading }: FinancialTable
     "Beban Bunga",
   ]
 
+  const activeColumns = !isLoading && financials && financials.length > 0
+    ? baseColumns.filter(key =>
+      financials.some(row => row[key] !== undefined && row[key] !== null && row[key] !== '')
+    )
+    : baseColumns
+
   const columnsTitle: Partial<Record<string, string>> = {
     'NPM': 'Net Profit Margin',
-    'OPM': 'Operating Progit Margin',
+    'OPM': 'Operating Profit Margin',
     'EBITDA': 'Earnings Before Interest, Taxes, Depreciation, and Amortization',
   }
 
   const getCellClass = (key: string, value: any) => {
+    if (value === undefined || value === null || value === '') return 'text-slate-500'
+
     const val = typeof value === 'string' ? parseFloat(value.replace(/[^0-9.-]/g, '')) : value
 
     if ((key === 'NPM' || key === 'OPM') && !isNaN(val)) return val > 10 ? 'text-emerald-400 font-medium' : val < 0 ? 'text-rose-400 font-medium' : 'text-slate-300'
@@ -40,7 +49,7 @@ export default function FinancialTable({ financials, isLoading }: FinancialTable
           <table className="text-sm border-collapse animate-pulse">
             <thead>
               <tr className="bg-slate-800/50">
-                {columns.map((key) => (
+                {activeColumns.map((key) => (
                   <th key={key} className="px-4 py-3 text-left">
                     <div className="h-4 w-20 bg-slate-700 rounded"></div>
                   </th>
@@ -48,9 +57,9 @@ export default function FinancialTable({ financials, isLoading }: FinancialTable
               </tr>
             </thead>
             <tbody>
-              {[...Array(4)].map((_, i) => (
+              {[...Array(9)].map((_, i) => (
                 <tr key={i} className="border-t border-slate-800">
-                  {columns.map((key) => (
+                  {activeColumns.map((key) => (
                     <td key={key} className="px-4 py-3">
                       <div className="h-4 w-full bg-slate-800 rounded"></div>
                     </td>
@@ -65,7 +74,7 @@ export default function FinancialTable({ financials, isLoading }: FinancialTable
           <table className="text-sm border-collapse">
             <thead>
               <tr className="bg-slate-800/50">
-                {columns.map((key, colIndex) => (
+                {activeColumns.map((key, colIndex) => (
                   <th
                     key={key}
                     className={`px-4 py-3 text-left font-semibold text-slate-300 whitespace-nowrap
@@ -81,7 +90,7 @@ export default function FinancialTable({ financials, isLoading }: FinancialTable
             <tbody className="divide-y divide-slate-800">
               {financials.map((row, rowIndex) => (
                 <tr key={rowIndex} className="hover:bg-slate-800/80 transition-colors even:bg-slate-900/30">
-                  {columns.map((key, colIndex) => (
+                  {activeColumns.map((key, colIndex) => (
                     <td
                       key={key}
                       className={`px-4 py-3 whitespace-nowrap 
@@ -89,7 +98,7 @@ export default function FinancialTable({ financials, isLoading }: FinancialTable
                         ${getCellClass(key, row[key])}
                       `}
                     >
-                      {row[key]}
+                      {row[key] ?? '-'}
                     </td>
                   ))}
                 </tr>

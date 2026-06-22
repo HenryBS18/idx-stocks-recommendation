@@ -6,23 +6,15 @@ export default function BalanceSheetTable({ balanceSheet, isLoading }: BalanceSh
     "Total Aset",
     "Total Liabilitas",
     "Total Ekuitas",
-    "DER",
-    "ROE",
     "PBV",
-    "PER",
-    "EPS",
+    "DER",
     "Kas dan Setara Kas",
-    "Piutang Usaha",
-    "Aset Tetap Bersih",
     "Saldo Laba"
   ]
 
   const columnsTitle: Partial<Record<string, string>> = {
     'DER': 'Debt to Equity Ratio',
-    'ROE': 'Return on Equity',
     'PBV': 'Price to Book Value',
-    'PER': 'Price to Earning Ratio',
-    'EPS': 'Earnings Per Share',
   }
 
   const getCellClass = (key: string, value: any) => {
@@ -53,7 +45,7 @@ export default function BalanceSheetTable({ balanceSheet, isLoading }: BalanceSh
               </tr>
             </thead>
             <tbody>
-              {[...Array(4)].map((_, i) => (
+              {[...Array(9)].map((_, i) => (
                 <tr key={i} className="border-t border-slate-800">
                   {columns.map((key) => (
                     <td key={key} className="px-4 py-3">

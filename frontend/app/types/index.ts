@@ -54,7 +54,7 @@ export type Financials = {
   "Periode": string
   "NPM": string
   "OPM": string
-  "Pendapatan Total": string
+  "Total Pendapatan": string
   "Laba Operasional": string
   "EBITDA": string
   "Laba Bersih": string
@@ -62,21 +62,20 @@ export type Financials = {
   "Beban Operasional": string
   "Beban Bunga": string
   "Pendapatan Bunga": string
+  "EPS": string
+  "PER": string
+  "ROE": string
+  "ROA": string
 }
 
 export type BalanceSheet = {
   "Periode": string
-  "EPS": string
-  "PER": string
   "PBV": string
-  "ROE": string
   "DER": string
   "Total Aset": string
-  "Kas dan Setara Kas": string
-  "Piutang Usaha": string
-  "Aset Tetap Bersih": string
   "Total Liabilitas": string
   "Total Ekuitas": string
+  "Kas dan Setara Kas": string
   "Saldo Laba": string
 }
 

@@ -13,8 +13,9 @@ export const getCsv = async (ticker: string, stockDataType: StockDataType, timef
   if (!existsSync(filePath)) {
     const stockDataApiBaseUrl = process.env.STOCK_DATA_API_URL
 
+    const fundamentalSource = (stockDataType === 'financials' || stockDataType === 'balance-sheet') ? '/sb' : ''
     const timeframeQuery = (stockDataType === 'price-historical' || stockDataType === 'broker-summary') ? `?timeframe=${timeframe}` : ''
-    const response = await fetch(`${stockDataApiBaseUrl}/stock/${ticker}/${stockDataType}${timeframeQuery}`)
+    const response = await fetch(`${stockDataApiBaseUrl}/stock/${ticker}/${stockDataType}${fundamentalSource}${timeframeQuery}`)
 
     if (!response.ok) {
       const message = (await response.json()).message
