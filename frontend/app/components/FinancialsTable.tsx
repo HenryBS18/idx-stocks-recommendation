@@ -1,19 +1,22 @@
 import { Financials, FinancialTableProps } from '../types'
 
 export default function FinancialTable({ financials, isLoading }: FinancialTableProps) {
-  // 1. Definisikan susunan master kolom sebagai acuan dasar
   const baseColumns: (keyof Financials)[] = [
     "Periode",
     "Laba Bersih",
     "NPM",
     "Total Pendapatan",
+    "Pendapatan Bunga",
     "Beban Operasional",
+    "Beban Bunga",
     "Laba Operasional",
     "OPM",
     "EBITDA",
     "Laba Sebelum Pajak",
-    "Pendapatan Bunga",
-    "Beban Bunga",
+    "EPS",
+    "PER",
+    "ROA",
+    "ROE",
   ]
 
   const activeColumns = !isLoading && financials && financials.length > 0
@@ -33,8 +36,13 @@ export default function FinancialTable({ financials, isLoading }: FinancialTable
 
     const val = typeof value === 'string' ? parseFloat(value.replace(/[^0-9.-]/g, '')) : value
 
-    if ((key === 'NPM' || key === 'OPM') && !isNaN(val)) return val > 10 ? 'text-emerald-400 font-medium' : val < 0 ? 'text-rose-400 font-medium' : 'text-slate-300'
-    if ((key === 'Laba Bersih' || key === 'Laba Operasional') && !isNaN(val)) return val > 0 ? 'text-emerald-400 font-medium' : 'text-rose-400 font-medium'
+    if (isNaN(val)) return 'text-slate-300'
+
+    if (key === 'ROE') return val > 15 ? 'text-emerald-400 font-bold' : val < 0 ? 'text-rose-400 font-medium' : 'text-slate-300'
+    if (key === 'ROA') return val > 5 ? 'text-emerald-400 font-medium' : val < 0 ? 'text-rose-400 font-medium' : 'text-slate-300'
+    if (key === 'NPM' || key === 'OPM') return val > 10 ? 'text-emerald-400 font-medium' : val < 0 ? 'text-rose-400 font-medium' : 'text-slate-300'
+    if (['Laba Bersih', 'Laba Operasional', 'Laba Sebelum Pajak', 'EBITDA', 'EPS'].includes(key)) return val > 0 ? 'text-emerald-400 font-medium' : val < 0 ? 'text-rose-400 font-medium' : 'text-slate-300'
+    if (key === 'PER') return (val > 0 && val <= 15) ? 'text-emerald-400 font-medium' : val < 0 ? 'text-rose-400 font-medium' : 'text-slate-300'
     return 'text-slate-300'
   }
 

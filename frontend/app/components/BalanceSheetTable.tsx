@@ -6,10 +6,10 @@ export default function BalanceSheetTable({ balanceSheet, isLoading }: BalanceSh
     "Total Aset",
     "Total Liabilitas",
     "Total Ekuitas",
-    "PBV",
-    "DER",
     "Kas dan Setara Kas",
-    "Saldo Laba"
+    "Saldo Laba",
+    "DER",
+    "PBV",
   ]
 
   const columnsTitle: Partial<Record<string, string>> = {
@@ -18,11 +18,18 @@ export default function BalanceSheetTable({ balanceSheet, isLoading }: BalanceSh
   }
 
   const getCellClass = (key: string, value: any) => {
-    const val = parseFloat(value)
+    if (value === undefined || value === null || value === '') return 'text-slate-500'
 
-    if (key === 'ROE' && !isNaN(val)) return val > 15 ? 'text-emerald-400 font-bold' : 'text-slate-300'
-    if (key === 'DER' && !isNaN(val)) return val > 200 ? 'text-rose-400 font-medium' : 'text-emerald-400 font-medium'
-    if ((key === 'PER' || key === 'PBV') && !isNaN(val)) return 'text-sky-300 font-medium'
+    const val = typeof value === 'string' ? parseFloat(value.replace(/[^0-9.-]/g, '')) : value
+    if (isNaN(val)) return 'text-slate-300'
+
+    if (key === 'Total Ekuitas' || key === 'Saldo Laba') return val < 0 ? 'text-rose-400 font-medium' : 'text-slate-300'
+    if (key === 'DER') return val > 200 ? 'text-rose-400 font-medium' : 'text-emerald-400 font-medium'
+    if (key === 'PBV') {
+      if (val < 0) return 'text-rose-400 font-bold'
+      if (val > 0 && val <= 1) return 'text-emerald-400 font-medium'
+      return 'text-slate-300'
+    }
     return 'text-slate-300'
   }
 
