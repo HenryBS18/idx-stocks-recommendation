@@ -25,6 +25,32 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+@layer utilities {
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #090d16;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #334155;
+    border-radius: 9999px;
+    border: 2px solid #090d16;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #0ea5e9;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #334155 #090d16;
+  }
+}
+
 
 @source inline("text-{green,red}-600");
 @source inline("{hover:,}bg-slate-{400,700}");
