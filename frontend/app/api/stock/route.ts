@@ -5,7 +5,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
 
     const ticker = body.ticker
-    const timeframe = body.timeframe
+    const timeframe = body.timeframe || 'medium'
 
     const response = await fetch(
       `${process.env.API_URL}/stock/${ticker}?timeframe=${timeframe}`
