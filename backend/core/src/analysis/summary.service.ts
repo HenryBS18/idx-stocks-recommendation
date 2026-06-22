@@ -32,7 +32,7 @@ export class SummaryService {
       case 'short':
         strategyContext = `
           KONTEKS STRATEGI: Trading Jangka Pendek / Day Trading (1 hari - 1 minggu).
-          FOKUS PENILAIAN: Keputusan harus berpusat pada **Momentum Teknikal**, **Aktivitas Broker Harian**, dan **Katalis Berita Instan**.
+          FOKUS PENILAIAN: Keputusan harus berpusat pada Momentum Teknikal, Aktivitas Broker Harian, dan Katalis Berita Instan.
           - Fundamental hanya relevan sebagai jaring pengaman (pastikan tidak ada risiko bangkrut mendadak).
           - Jika teknikal sedang jelek/sideways dan broker distribusi, berikan rekomendasi "Avoid" meskipun fundamentalnya bagus (karena tidak cocok untuk fast-trade).
         `
@@ -40,7 +40,7 @@ export class SummaryService {
       case 'medium':
         strategyContext = `
           KONTEKS STRATEGI: Swing Trading Jangka Menengah (2 minggu - 3 bulan).
-          FOKUS PENILAIAN: Keputusan berpusat pada **Tren Teknikal Menengah**, **Konsistensi Akumulasi Broker**, dan **Pertumbuhan Fundamental Kuartalan**.
+          FOKUS PENILAIAN: Keputusan berpusat pada Tren Teknikal Menengah, Konsistensi Akumulasi Broker, dan Pertumbuhan Fundamental Kuartalan.
           - Pertimbangkan apakah katalis berita sektoral mendukung tren naik selama beberapa minggu ke depan.
           - Jika struktur harga membentuk tren naik (higher high/higher low) yang divalidasi oleh akumulasi broker, ini adalah indikasi "Buy".
         `
@@ -48,7 +48,7 @@ export class SummaryService {
       case 'long':
         strategyContext = `
           KONTEKS STRATEGI: Investasi Jangka Panjang (di atas 6 bulan).
-          FOKUS PENILAIAN: Keputusan WAJIB dipandu oleh **Kekuatan Fundamental (Valuasi & Profitabilitas)**, **Prospek Makro**, dan **Posisi Harga Historis (Teknikal Makro)**.
+          FOKUS PENILAIAN: Keputusan WAJIB dipandu oleh Kekuatan Fundamental (Valuasi & Profitabilitas), Prospek Makro, dan Posisi Harga Historis (Teknikal Makro).
           - Abaikan volatilitas harga harian atau sentimen negatif sesaat dari berita/broker jika bisnis intinya tetap solid.
           - Jika saham ini secara fundamental undervalued (murah) dan berada di area support kuat jangka panjang, ini adalah indikasi "Buy" yang kuat untuk di-hold.
         `
@@ -57,38 +57,63 @@ export class SummaryService {
         strategyContext = 'KONTEKS STRATEGI: Analisis Umum.'
     }
 
-    const prompt = `
-      Kamu diberikan data ringkasan dari 4 pilar analisis untuk saham ${ticker} berikut ini:
-      - Ringkasan Analisis Teknikal
-      - Ringkasan Analisis Fundamental
-      - Ringkasan Analisis Broker Summary (Bandarmologi)
-      - Ringkasan Analisis Berita & Sentimen
+    const systemInstruction = `
+      Anda adalah Ketua Komite Investasi dan Strategis Pasar Modal senior di Bursa Efek Indonesia (BEI). Tugas Anda adalah mengonstruksi ringkasan eksekutif (sintesis) dari 4 pilar analisis (Teknikal, Fundamental, Bandarmologi, Sentimen) menjadi satu kesimpulan komprehensif dan menetapkan rekomendasi akhir secara tegas.
 
-      ${strategyContext}
+      PANDUAN RESOLUSI KONFLIK DATA & EDUKASI PEMULA:
+      - Jika ada konflik data (misalnya: Valuasi Fundamental sangat murah, tetapi Teknikal breakdown dan Bandarmologi mencatat Distribusi Masif), Anda wajib menjelaskan risikonya dengan bahasa sederhana.
+      - Edukasi investor pemula jika terjadi kondisi dilematis seperti Value Trap (saham terlihat murah padahal kinerjanya memburuk terus) atau Bull Trap (harga naik sesaat padahal bandar sedang jualan masif) di dalam tanda kurung.
 
-      TUGAS:
-      - Baca dan pahami semua data dari 4 pilar di atas secara menyeluruh.
-      - Buat kesimpulan akhir yang mensintesis keempat aspek tersebut, KHUSUS UNTUK KONTEKS STRATEGI yang diminta.
-      - Tentukan rekomendasi akhir secara tegas.
-      
-      ATURAN KESIMPULAN:
-      - Sebutkan faktor mana yang paling dominan mempengaruhi keputusanmu.
-      - Jika ada konflik data (Misalnya: Valuasi fundamental murah, tapi teknikal dan broker sedang distribusi hancur-hancuran), jelaskan risikonya secara singkat.
-      - Di akhir paragraf kesimpulan, jelaskan rasionalisasi mengapa rekomendasinya "Buy" atau "Avoid" berdasar kacamata timeframe ini.
-      - Gunakan kalimat yang ringkas, objektif, dan mudah dimengerti oleh investor awam.
-      
-      ATURAN REKOMENDASI:
-      - "Buy"   → Jika mayoritas indikator mendukung dan risiko terukur sesuai timeframe yang dipilih.
-      - "Avoid" → Jika mayoritas indikator negatif, tidak ada momentum, atau rasio risk/reward terlalu buruk untuk timeframe yang dipilih.
-
-      Format output WAJIB JSON:
-      {
-        "summary": "kesimpulan komprehensif di sini",
-        "recommendation": "Buy|Avoid"
-      }
+      ATURAN FORMAT OUTPUT (JSON & HTML TAILWIND):
+      1. Output wajib berupa JSON murni yang valid sesuai schema dengan key "summary" dan "recommendation". JANGAN gunakan backticks (\`\`\`json ... \`\`\`).
+      2. Nilai pada properti "recommendation" HARUS berupa string murni: "Buy" atau "Avoid" (pilih salah satu, tanpa tag HTML, tanpa modifikasi kata).
+      3. Di dalam string penjelasan "summary", gunakan teks paragraf mengalir yang disisipi tag HTML <span> untuk mewarnai kesimpulan krusial.
+      4. WAJIB menggunakan tanda kutip satu (') untuk class Tailwind di dalam tag HTML (Contoh: class='text-emerald-400'). JANGAN PERNAH gunakan kutip dua (\") di dalam tag HTML karena akan merusak struktur string JSON!
+      5. Skema Warna Class Tailwind pada properti "summary":
+        * Rekomendasi Positif / Sinyal Konfirmasi / Arah Akumulasi: <span class='text-emerald-400 font-semibold'>Kata/Kalimat</span>
+        * Risiko Tinggi / Sinyal Bahaya / Konflik Data / Distribusi: <span class='text-rose-400 font-semibold'>Kata/Kalimat</span>
+        * Sebutan 4 Pilar Analisis (Teknikal, Fundamental, Bandarmologi, Sentimen): <span class='text-sky-400 font-medium'>PILAR</span>
+        * Kondisi Netral / Penyeimbang / Alternatif Wait & See: <span class='text-amber-400 font-semibold'>Kata/Kalimat</span>
     `
 
+    const prompt = `
+      Saham Target: ${ticker}
+
+      KONTEKS STRATEGI PENGGUNA:
+      ${strategyContext}
+
+      TUGAS ANDA:
+      1. Tinjau keempat pilar di atas secara silang. Cari tahu apakah datanya saling mendukung atau justru saling berbenturan berdasarkan KONTEKS STRATEGI pengguna.
+      2. Tentukan faktor dominan yang mendasari keputusan Anda pada timeframe ini.
+      3. Berikan rasionalisasi yang objektif dan kalkulatif mengapa keputusan akhirnya "Buy" atau "Avoid" pada properti "summary".
+      4. Isi properti "recommendation" secara tegas sesuai dengan instruksi schema.
+    `
+
+    const responseJsonSchema = {
+      "type": "object",
+      "properties": {
+        "summary": {
+          "type": "string"
+        },
+        "recommendation": {
+          "type": "string"
+        }
+      },
+      "propertyOrdering": [
+        "summary",
+        "recommendation"
+      ],
+      "required": [
+        "summary",
+        "recommendation"
+      ]
+    }
+
     const response = await this.aiService.generateContent({
+      config: {
+        systemInstruction,
+        responseJsonSchema,
+      },
       contents: [
         {
           text: `[TEKNIKAL]: ${JSON.stringify(technical)}`

@@ -1,4 +1,5 @@
 import { NewsAnalysisResult, Timeframe } from '@app/types'
+import { parseJson } from '@app/utils'
 import { cacheTTL } from '@app/utils/cache-ttl'
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager'
 import { Inject, Injectable, Logger } from '@nestjs/common'
@@ -62,45 +63,70 @@ export class NewsService {
         timeframeContext = 'STRATEGI: Analisis umum seputar emiten terkait.'
     }
 
-    const prompt = `
-      Hari ini adalah ${today}. Gunakan ini sebagai referensi waktu, bukan filter ketat.
+    const systemInstruction = `
+      Anda adalah seorang analis sentimen pasar keuangan senior untuk Bursa Efek Indonesia (BEI). Tugas Anda adalah merangkum berita emiten dan menerjemahkan dampaknya terhadap psikologi pasar secara objektif sesuai strategi pengguna.
 
-      KONTEKS STRATEGI PENGGUNA:
+      ATURAN PENELITIAN DATA (WAJIB):
+      - Anda dilarang keras menggunakan pengetahuan internal sendiri. Anda DIWAJIBKAN melakukan pencarian web secara langsung (live web search) untuk mengambil data berita terupdate.
+      - Isi ringkasan HANYA dari data berita hasil pencarian nyata, TIDAK BOLEH berhalusinasi atau mengarang cerita.
+
+      ATURAN KONTEN & GAYA PENULISAN:
+      - Jangan sebut tanggal spesifik (misal: "22 Juni"), gunakan frasa seperti "berita terbaru", "sentimen jangka pendek", atau "prospek jangka panjang".
+      - Tulis ringkasan secara informatif, maksimal 1000 karakter.
+      - WAJIB gunakan tag HTML <span> dengan class Tailwind CSS bertanda kutip satu (') untuk highlight kata penting (Contoh: <span class='text-emerald-400 font-semibold'>Sentimen Positif</span>). JANGAN gunakan kutip dua (\") pada tag HTML karena akan merusak JSON.
+      - Jika ada istilah aksi korporasi yang rumit, jelaskan secara singkat di dalam tanda kurung agar investor pemula paham.
+
+      ATURAN KHUSUS INDEKS GLOBAL (IKUTI DENGAN KETAT):
+      - HANYA sebut indeks global (MSCI, FTSE, dll) jika Anda menemukan hasil review/rebalancing yang secara eksplisit menyebut emiten target masuk, keluar, atau berubah bobotnya.
+      - Jika tidak ada, HAPUS seluruh kalimat tentang indeks global dari ringkasan—jangan tulis "tidak ada perubahan" atau sejenisnya.
+
+      ATURAN FORMAT OUTPUT:
+      - Output harus berupa JSON murni yang valid sesuai schema. Jangan bungkus dengan backticks markdown (\`\`\`json ... \`\`\`).
+    `
+
+    const prompt = `
+      Hari ini adalah tanggal: ${today}.
+      Saham Target: ${ticker}
+      
+      KONTEKS STRATEGI PENGGUNA SAAT INI:
       ${timeframeContext}
 
-      Cakupan pencarian (urutan prioritas):
-      - Berita langsung tentang emiten ${ticker}
-      - Berita sektor industri yang relevan dengan ${ticker}
-      - Sentimen atau kebijakan domestik dan internasional yang berdampak pada ${ticker}
-      - Hasil review atau rebalancing indeks global terbaru (MSCI, FTSE, GDX/GDXJ)
-        yang mencakup ${ticker}, terlepas dari kapan review itu diumumkan
+      Cakupan pencarian berita (Urutan Prioritas):
+      1. Berita langsung tentang emiten ${ticker}
+      2. Berita sektor industri yang relevan dengan ${ticker}
+      3. Sentimen kebijakan domestik/internasional yang berdampak pada ${ticker}
+      4. Hasil review/rebalancing indeks global terbaru yang mencakup ${ticker}
 
-      Aturan umum:
-      - Utamakan berita paling baru yang tersedia yang relevan dengan KONTEKS STRATEGI PENGGUNA di atas.
-      - Fokus pada informasi yang relevan dengan pergerakan atau prospek saham ${ticker}.
-      - Jangan sebut tanggal spesifik dalam ringkasan, gunakan frasa seperti "berita terbaru", "sentimen jangka pendek", atau "prospek jangka panjang".
-      - Isi ringkasan hanya dari data berita saja, TIDAK BOLEH hasil karangan.
-      - Tulis ringkasan yang informatif, maksimal 1000 karakter.
-
-      Aturan KHUSUS indeks global — ikuti dengan ketat:
-      - HANYA sebut indeks global jika kamu menemukan hasil review atau rebalancing
-        yang secara eksplisit menyebut ${ticker} masuk, keluar, upgrade, downgrade,
-        atau perubahan bobot.
-      - Jika tidak menemukan hasil review tersebut, HAPUS seluruh kalimat tentang
-        indeks global dari ringkasan — jangan ganti dengan kalimat "tidak ada perubahan",
-        "belum terdapat laporan", atau kalimat sejenis.
-
-      Format output:
-      Tuliskan ringkasan berita secara naratif langsung dalam bentuk paragraf teks biasa. Jangan gunakan format JSON atau markdown aneh. Sesuaikan gaya penulisan dan penekanan poin dengan KONTEKS STRATEGI PENGGUNA yang diminta.
+      Eksekusi pencarian sekarang, lalu isi properti "news" dan "sources" pada JSON.
     `
+
+    const responseJsonSchema = {
+      "type": "object",
+      "properties": {
+        "news": {
+          "type": "string"
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "propertyOrdering": [
+        "news",
+        "sources"
+      ],
+      "required": [
+        "news",
+        "sources"
+      ]
+    }
 
     const response = await this.aiService.generateContent({
       config: {
-        responseMimeType: 'text/plain',
-        systemInstruction: `
-          Kamu dilarang keras menjawab menggunakan pengetahuan internal kamu sendiri. 
-          Kamu DIWAJIBKAN untuk melakukan pencarian web secara langsung (live web search) untuk menemukan informasi terkini, berita terbaru, dan data valid terkait permintaan pengguna di bawah ini.
-        `,
+        systemInstruction,
+        responseJsonSchema,
         tools: [
           {
             googleSearch: {},
@@ -114,25 +140,24 @@ export class NewsService {
       ],
     })
 
-    const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || []
+    Logger.debug(`News Token: ${response.usageMetadata?.totalTokenCount}`, NewsService.name)
 
-    const cleanChunks: string[] = (
+    const newsAnalysisTmp = parseJson<NewsAnalysisResult>(response.text!)
+
+    const cleanSources: string[] = (
       await Promise.all(
-        chunks.map(async (chunk) => {
-          if (chunk.web?.uri) {
-            return await this.resolveRealUrl(chunk.web.uri)
+        newsAnalysisTmp.sources.map(async (url) => {
+          if (url) {
+            return await this.resolveRealUrl(url)
           }
           return null
         })
       )
     ).filter((url): url is string => url !== null)
 
-
-    Logger.debug(`News Token: ${response.usageMetadata?.totalTokenCount}`, NewsService.name)
-
     const newsAnalysis = {
-      news: response.text!,
-      sources: cleanChunks
+      news: newsAnalysisTmp.news,
+      sources: cleanSources
     }
 
     if (this.env.CACHE_ENABLED) await this.cacheManager.set(cacheKey, newsAnalysis, cacheTTL())

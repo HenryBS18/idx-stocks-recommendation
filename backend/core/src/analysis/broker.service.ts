@@ -47,38 +47,59 @@ export class BrokerService {
         timeframeContext = 'Fokus pada tren umum.'
     }
 
+    const systemInstruction = `
+      Anda adalah seorang analis market microstructure dan pakar Bandarmologi di Bursa Efek Indonesia (BEI). Tugas Anda adalah membedah data Broker Summary (dari file CSV yang dilampirkan) menjadi narasi analisis yang tajam namun ramah bagi investor pemula.
+
+      PANDUAN ANALISIS DATA:
+      - Bandingkan total buy_value vs total sell_value untuk menentukan siapa yang mengendalikan harga.
+      - Fokus hanya pada 3-5 broker paling aktif di sisi beli (Buy Side) dan jual (Sell Side), abaikan yang nilainya kecil.
+      - Klasifikasikan tipe broker berdasarkan kode berikut:
+        * Asing (Foreign Flow): AK, BK, ZP, RX, YU, CC, KZ, CS
+        * Institusi/Dana Besar: LG, PD, BB, AZ, OD, DX, HP, KI, NI, RB, SQ, RF
+        * Ritel Domestik: XL, XC, PD, YP
+      - Perhatikan rata-rata harga (buy_avg vs sell_avg). Jika buy_avg > sell_avg, tandanya ada aksi beli agresif (hajar kanan).
+
+      PANDUAN EDUKASI INVESTOR PEMULA:
+      - Setiap kali Anda menggunakan istilah teknikal Bandarmologi (seperti akumulasi, distribusi, foreign inflow, atau hajar kanan), Anda WAJIB memberikan penjelasan singkat atau analogi sederhana di dalam tanda kurung. (Contoh: "terjadi distribusi (aksi bandar/institusi besar menjual saham ke investor ritel)...").
+
+      ATURAN FORMAT OUTPUT (JSON & HTML TAILWIND):
+      1. Output harus berupa JSON murni yang valid sesuai schema dengan key "brokerSummary". JANGAN gunakan backticks (\`\`\`json ... \`\`\`).
+      2. Di dalam string "brokerSummary", gunakan teks paragraf mengalir yang disisipi tag HTML <span> untuk mewarnai kata kunci penting.
+      3. WAJIB menggunakan tanda kutip satu (') untuk class Tailwind di dalam tag HTML (Contoh: class='text-emerald-400'). JANGAN PERNAH gunakan kutip dua (\") di dalam tag HTML karena akan merusak format parsing JSON!
+      4. Skema Warna Class Tailwind:
+        * Kondisi Akumulasi / Bullish / Belanja Agresif: <span class='text-emerald-400 font-semibold'>Kata/Kalimat</span>
+        * Kondisi Distribusi / Bearish / Ritel Terjebak: <span class='text-rose-400 font-semibold'>Kata/Kalimat</span>
+        * Kondisi Netral / Konsolidasi / Sideways: <span class='text-amber-400 font-semibold'>Kata/Kalimat</span>
+        * Penyebutan Kode Broker (misal: AK, BK, YP): <span class='text-sky-400 font-medium'>KODE</span>
+    `
+
     const prompt = `
-      Data berikut adalah ringkasan aktivitas broker (Broker Summary) selama ${dataPeriod} untuk saham ${ticker}.
-      Kolom buy side: broker, lot, value, avg price.
-      Kolom sell side: broker, lot, value, avg price.
+      Analisis data aktivitas broker (Broker Summary) pada file CSV yang terlampir untuk saham ${ticker} selama periode ${dataPeriod}.
       
-      KONTEKS ANALISIS:
+      KONTEKS STRATEGI PENGGUNA:
       ${timeframeContext}
       
-      TUGAS UTAMA:
-      - Identifikasi siapa broker paling dominan di sisi beli dan jual
-      - Tentukan apakah terjadi akumulasi atau distribusi secara keseluruhan
-      - Deteksi pola penting (misalnya: broker asing dominan beli, broker lokal dominan jual, atau sebaliknya)
-      - Buat ringkasan yang mudah dipahami oleh pengguna dengan target waktu tersebut.
-
-      ATURAN ANALISIS:
-      - Bandingkan total buy_value vs total sell_value untuk menentukan tekanan dominan
-      - Asing umumnya menggunakan broker dengan kode: AK, BK, ZP, RX, YU, CC, KZ, CS — sebutkan jika ada dominasi asing
-      - Institusi umumnya menggunakan broker: LG, PD, BB, AZ, OD, DX, HP, KI, NI, RB, SQ, RF — sebutkan jika dominan
-      - Ritel umumnya menggunakan broker: XL, XC, PD, YP — sebutkan jika ada dominasi ritel
-      - Perhatikan buy_avg vs sell_avg: jika buy_avg > sell_avg artinya ada yang beli di harga lebih tinggi (agresif beli)
-      - Fokus pada 3-5 broker paling aktif saja, abaikan yang nilainya kecil
-
-      ATURAN RINGKASAN:
-      - Wajib menyebutkan: dominasi arah (akumulasi/distribusi), broker paling aktif, dan implikasinya terhadap harga di periode ${dataPeriod}.
-      - Boleh sebutkan angka mentah, namun diikuti deskripsi relatif (misalnya "signifikan", "dominan", "moderat")
-      - Sesuaikan gaya bahasa dan penekanan dengan KONTEKS ANALISIS di atas.
-
-      Format output JSON:
-      {
-        "brokerSummary": "ringkasan hasil analisis"
-      }
+      TUGAS ANDA:
+      1. Identifikasi broker yang paling dominan di sisi buy dan sell berdasarkan aturan klasifikasi tipe broker.
+      2. Tentukan status dominasi akhir (Akumulasi/Distribusi/Netral) secara keseluruhan.
+      3. Berikan deskripsi relatif (seperti "signifikan", "dominan", "moderat") dan sebutkan implikasinya terhadap arah pergerakan harga saham ${ticker} ke depan.
+      4. Sesuaikan penekanan poin dan gaya bahasa dengan KONTEKS STRATEGI PENGGUNA di atas.
     `
+
+    const responseJsonSchema = {
+      "type": "object",
+      "properties": {
+        "brokerSummary": {
+          "type": "string"
+        }
+      },
+      "propertyOrdering": [
+        "brokerSummary"
+      ],
+      "required": [
+        "brokerSummary"
+      ]
+    }
 
     const brokerSummaryFilePath = await getCsv(ticker, 'broker-summary', timeframe)
 
@@ -91,6 +112,10 @@ export class BrokerService {
       })
 
       const response = await this.aiService.generateContent({
+        config: {
+          systemInstruction,
+          responseJsonSchema,
+        },
         contents: [
           {
             fileData: {

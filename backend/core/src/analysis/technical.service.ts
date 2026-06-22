@@ -52,47 +52,79 @@ export class TechnicalService {
 				strategyContext = 'Fokus pada tren pergerakan harga secara umum.'
 		}
 
+		const systemInstruction = `
+			Anda adalah seorang analis teknikal senior (Chartist) spesialis Bursa Efek Indonesia (BEI). Tugas Anda adalah membedah data pergerakan harga historis (OHLCV) dari file yang dilampirkan menjadi analisis grafik yang taktis dan mudah dipahami investor pemula.
+
+			PANDUAN ANALISIS TEKNIKAL:
+			- Tentukan tren harga berdasarkan struktur Higher High/Higher Low (Uptrend) atau Lower High/Lower Low (Downtrend).
+			- Validasi area Support & Resistance berdasarkan titik swing high/low yang minimal pernah diuji/disentuh 2 kali pada periode data.
+			- Level Support harus <= harga terakhir dan >= harga terendah keseluruhan di periode ini.
+			- Level Resistance harus >= harga terakhir dan <= harga tertinggi keseluruhan di periode ini.
+			- Batasi maksimal 3 level untuk masing-masing Support & Resistance, dengan jarak antar level minimal 3%. Format berupa range angka bulat tanpa desimal (Contoh: "1000 - 1050"), diurutkan dari nilai terkecil ke terbesar.
+
+			PANDUAN EDUKASI INVESTOR PEMULA:
+			- Setiap kali Anda menyebutkan istilah teknikal grafik (seperti Bullish, Bearish, Sideways, Breakout, Breakdown, Golden Cross, Death Cross, Rebound), Anda WAJIB memberikan penjelasan singkat atau analogi ringkas di dalam tanda kurung. (Contoh: "Saham berhasil breakout (menembus batas dinding harga atas)...").
+
+			ATURAN FORMAT OUTPUT (JSON & HTML TAILWIND):
+			1. Output harus berupa JSON murni yang valid sesuai schema dengan key "trend", "support", "resistance", dan "technical". JANGAN gunakan backticks (\`\`\`json ... \`\`\`).
+			2. Nilai pada properti "trend" HARUS berupa teks murni (pilih salah satu: "Bullish", "Bearish", atau "Sideways") TANPA tag HTML.
+			3. Di dalam string penjelasan "technical", gunakan teks paragraf mengalir yang disisipi tag HTML <span> untuk mewarnai kata kunci penting.
+			4. WAJIB menggunakan tanda kutip satu (') untuk class Tailwind di dalam tag HTML (Contoh: class='text-emerald-400'). JANGAN PERNAH gunakan kutip dua (\") di dalam tag HTML karena akan memutus string JSON!
+			5. Skema Warna Class Tailwind pada properti "technical":
+				* Kondisi Tren Naik / Bullish / Breakout / Rebound: <span class='text-emerald-400 font-semibold'>Kata/Kalimat</span>
+				* Kondisi Tren Turun / Bearish / Breakdown / Rejection: <span class='text-rose-400 font-semibold'>Kata/Kalimat</span>
+				* Kondisi Konsolidasi / Sideways / Area S&R: <span class='text-amber-400 font-semibold'>Kata/Kalimat</span>
+				* Nama Indikator / Moving Average (misal: MA5, MA200, Golden Cross): <span class='text-sky-400 font-medium'>INDIKATOR</span>
+		`
+
 		const prompt = `
-      Data yang diberikan adalah data OHLCV harian saham ${ticker} selama ${dataDuration} dengan kolom: Date, Open, High, Low, Close, Volume.
+			Saham Target: ${ticker}
 
-      KONTEKS STRATEGI:
-      ${strategyContext}
+			Analisis data pergerakan harga OHLCV harian saham ${ticker} yang terlampir pada file data selama periode ${dataDuration}.
 
-      Tugas:
-      - Tentukan tren harga dominan
-      - Identifikasi level support dan resistance yang valid sesuai dengan timeframe data (${dataDuration})
-      - Buat ringkasan teknikal yang aplikatif
+			KONTEKS STRATEGI PENGGUNA:
+			${strategyContext}
+			
+			Aturan Tambahan:
+			- Pertimbangkan posisi harga terakhir terhadap ${maRules}.
+			- Jangan sebut angka mentah yang terlalu spesifik pada penjelasan ringkasan "technical" jika tidak perlu, fokus pada instruksi tindakan (kapan area beli yang aman, waspada breakdown, dll) yang sinkron dengan KONTEKS STRATEGI PENGGUNA.
+		`
 
-      Aturan tren harga:
-      - Analisis berdasarkan struktur higher high/higher low atau lower high/lower low
-      - Pertimbangkan posisi harga terhadap ${maRules}
-      - Output: "Bullish" jika tren naik, "Bearish" jika tren turun, "Sideways" jika ranging
-
-      Aturan support & resistance:
-      - Tentukan berdasarkan swing high/low yang telah diuji minimal 2 kali pada periode ${dataDuration}
-      - Support: harga <= harga terakhir, >= harga terendah keseluruhan di periode ini
-      - Resistance: harga >= harga terakhir, <= harga tertinggi keseluruhan di periode ini
-      - Maksimal 3 support, maksimal 3 resistance
-      - Jarak antar level minimal 3%
-      - Format range: "1000 - 1050" (gunakan angka bulat, tanpa desimal)
-      - Urutkan dari nilai terendah ke tertinggi
-
-      Aturan ringkasan teknikal:
-      - Gunakan Bahasa Indonesia yang mudah dipahami.
-      - Berikan insight tindakan yang sesuai dengan KONTEKS STRATEGI di atas (misal: kapan area beli yang aman, waspada breakdown, dll).
-
-      Format output wajib JSON:
-      {
-        "trend": "Bullish|Sideways|Bearish",
-        "support": [
-          "1000 - 1050"
-        ],
-        "resistance": [
-          "1100 - 1150"
-        ],
-        "technical": "ringkasan penjelasan teknikal"
-      }
-    `
+		const responseJsonSchema = {
+			"type": "object",
+			"properties": {
+				"trend": {
+					"type": "string"
+				},
+				"support": {
+					"type": "array",
+					"items": {
+						"type": "string"
+					}
+				},
+				"resistance": {
+					"type": "array",
+					"items": {
+						"type": "string"
+					}
+				},
+				"technical": {
+					"type": "string"
+				}
+			},
+			"propertyOrdering": [
+				"trend",
+				"support",
+				"resistance",
+				"technical"
+			],
+			"required": [
+				"trend",
+				"support",
+				"resistance",
+				"technical"
+			]
+		}
 
 		const priceHistoricalFilePath = await getCsv(ticker, 'price-historical', timeframe)
 
@@ -108,6 +140,10 @@ export class TechnicalService {
 			])
 
 			const response = await this.aiService.generateContent({
+				config: {
+					systemInstruction,
+					responseJsonSchema,
+				},
 				contents: [
 					{
 						fileData: {
