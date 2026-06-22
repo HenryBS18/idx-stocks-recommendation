@@ -1,0 +1,35 @@
+services:
+  core-api:
+    container_name: core-api
+    build: ./backend/core
+    restart: unless-stopped
+    env_file:
+      - ./backend/core/.env.prod
+    depends_on:
+      - stock-data-api
+  stock-data-api:
+    container_name: stock-data-api
+    build: ./backend/stock_data
+    restart: unless-stopped
+    env_file:
+      - ./backend/stock_data/.env.prod
+  redis:
+    container_name: redis
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: "redis-server --requirepass ${REDIS_PASSWORD}"
+    volumes:
+      - redis-volume:/data
+  app:
+    container_name: app
+    build: ./frontend
+    restart: unless-stopped
+    env_file:
+      - ./frontend/.env.prod
+    ports:
+      - "3000:3000"
+    depends_on:
+      - core-api
+
+volumes:
+  redis-volume:
