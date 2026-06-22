@@ -1,6 +1,6 @@
 "use client"
 
-import { CandlestickSeries, ColorType, createChart, HistogramSeries, IChartApi } from "lightweight-charts"
+import { CandlestickSeries, ColorType, createChart, CrosshairMode, HistogramSeries, IChartApi } from "lightweight-charts"
 import { DrawingManager, Rectangle } from "lightweight-charts-drawing"
 import { useEffect, useRef, useState } from "react"
 import { OHLCVData, StockChartProps } from '../types'
@@ -53,6 +53,7 @@ export default function StockChart({ ticker, support = [], resistance = [] }: St
       crosshair: {
         vertLine: { color: '#758696', labelBackgroundColor: '#758696' },
         horzLine: { color: '#758696', labelBackgroundColor: '#758696' },
+        mode: CrosshairMode.Normal,
       },
     })
 
