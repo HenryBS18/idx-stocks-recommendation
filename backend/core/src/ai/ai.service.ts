@@ -16,7 +16,7 @@ export class AiService {
 
     const timeout = setTimeout(() => {
       controller.abort()
-    }, 20000)
+    }, 30000)
 
     try {
       return await this.ai.models.generateContent({
