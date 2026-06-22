@@ -219,34 +219,34 @@ export default function OldView() {
                 </div>
               </div>
 
-              <p className='text-slate-300'>{data?.technical}</p>
+              <p className='text-slate-300' dangerouslySetInnerHTML={{ __html: data?.technical ?? '' }} />
             </div>
 
             <div className="mb-3">
               <h2 className='text-xl'>Bandarmologi</h2>
 
-              <p className='text-slate-300'>{data?.brokerSummary}</p>
+              <p className='text-slate-300' dangerouslySetInnerHTML={{ __html: data?.brokerSummary ?? '' }} />
             </div>
 
             <div className="mb-3">
               <h2 className='text-xl'>Fundamental</h2>
 
               <div className='space-y-1'>
-                <p className='text-slate-300'>{data?.financials}</p>
-                <p className='text-slate-300'>{data?.balanceSheet}</p>
+                <p className='text-slate-300' dangerouslySetInnerHTML={{ __html: data?.financials ?? '' }} />
+                <p className='text-slate-300' dangerouslySetInnerHTML={{ __html: data?.balanceSheet ?? '' }} />
               </div>
             </div>
 
             <div className="mb-3">
               <h2 className='text-xl'>Berita</h2>
 
-              <p className='text-slate-300'>{data?.news.text}</p>
+              <p className='text-slate-300' dangerouslySetInnerHTML={{ __html: data?.news.text ?? '' }} />
             </div>
 
             <div className="mb-3">
               <h2 className='text-xl'>Kesimpulan</h2>
 
-              <p className='text-slate-300'>{data?.summary}</p>
+              <p className='text-slate-300' dangerouslySetInnerHTML={{ __html: data?.summary ?? '' }} />
             </div>
           </div>
         </div>
