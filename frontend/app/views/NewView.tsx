@@ -97,7 +97,7 @@ export default function NewView() {
       stock.ticker.toLowerCase().includes(keyword) ||
       stock.name.toLowerCase().includes(keyword)
     )
-  }).slice(0, 5)
+  }).slice(0, 6)
 
   const fetchBroksum = async (timeframe: Timeframe) => {
     setIsBroksumLoading(true)
