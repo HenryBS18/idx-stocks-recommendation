@@ -166,16 +166,11 @@ export class NewsService {
   }
 
   private async resolveRealUrl(redirectUrl: string): Promise<string> {
-    try {
-      const response = await fetch(redirectUrl, {
-        method: 'HEAD',
-        redirect: 'manual'
-      })
+    const response = await fetch(redirectUrl, {
+      method: 'HEAD',
+      redirect: 'manual'
+    })
 
-      return response.headers.get('location') || redirectUrl
-    } catch (error) {
-      console.error("Failed to resolve URL:", error)
-      return redirectUrl
-    }
+    return response.headers.get('location') || redirectUrl
   }
 }
