@@ -554,16 +554,6 @@ class StockService:
 			else:
 				data_row["OPM"] = None
 
-		if formatted_result:
-			all_keys = list(formatted_result[0].keys())
-			keys_to_remove = [
-				key for key in all_keys 
-				if key != "Periode" and all(data_row.get(key) is None for data_row in formatted_result)
-			]
-			for data_row in formatted_result:
-				for key in keys_to_remove:
-					data_row.pop(key, None)
-
 		for data_row in formatted_result:
 			for key, val in data_row.items():
 				if key == "Periode" or val is None:
