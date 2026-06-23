@@ -27,28 +27,23 @@ export class TechnicalService {
 		}
 
 		let dataDuration = ''
-		let maRules = ''
 		let strategyContext = ''
 
 		switch (timeframe) {
 			case 'short':
 				dataDuration = 'enam bulan terakhir'
-				maRules = 'moving average 5 (MA5) dan 20 (MA20) periode untuk mendeteksi momentum cepat'
 				strategyContext = 'Fokus pada pergerakan jangka pendek (1 hari - 1 minggu). Identifikasi level support/resistance minor terdekat untuk kebutuhan fast-trade atau day trading.'
 				break
 			case 'medium':
 				dataDuration = 'enam bulan terakhir'
-				maRules = 'moving average 20 (MA20) dan 50 (MA50) periode untuk mengukur kekuatan tren menengah'
 				strategyContext = 'Fokus pada struktur tren swing trading (2 minggu - 3 bulan). Cari pola pembalikan arah (reversal) atau kelanjutan tren (continuation) berdasarkan higher high / lower low yang lebih terkonfirmasi.'
 				break
 			case 'long':
 				dataDuration = 'enam bulan terakhir'
-				maRules = 'moving average 50 (MA50) dan 200 (MA200) periode untuk mendeteksi tren makro (misal: Golden Cross atau Death Cross)'
 				strategyContext = 'Fokus pada siklus besar investasi jangka panjang (di atas 6 bulan). Cari area major support/resistance historis untuk menentukan apakah harga berada di area bottoming atau sudah di pucuk.'
 				break
 			default:
 				dataDuration = 'enam bulan terakhir'
-				maRules = 'moving average 20 dan 50 periode'
 				strategyContext = 'Fokus pada tren pergerakan harga secara umum.'
 		}
 
@@ -86,7 +81,6 @@ export class TechnicalService {
 			${strategyContext}
 			
 			Aturan Tambahan:
-			- Pertimbangkan posisi harga terakhir terhadap ${maRules}.
 			- Jangan sebut angka mentah yang terlalu spesifik pada penjelasan ringkasan "technical" jika tidak perlu, fokus pada instruksi tindakan (kapan area beli yang aman, waspada breakdown, dll) yang sinkron dengan KONTEKS STRATEGI PENGGUNA.
 		`
 
