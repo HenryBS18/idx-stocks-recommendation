@@ -35,7 +35,10 @@ export class SummaryService {
           FOKUS PENILAIAN: Keputusan harus berpusat secara EKSKLUSIF pada Momentum Teknikal, Aktivitas Broker Harian, dan Katalis Berita Instan.
           - Abaikan faktor fundamental sepenuhnya (valuasi, rasio keuangan, laporan laba/rugi, atau prospek jangka panjang sama sekali tidak relevan untuk kerangka waktu ini).
           - Keputusan mutlak didasarkan pada pergerakan harga dan aliran dana (fund flow) saat ini. 
-          - Jika teknikal sedang jelek, tren sideways, atau aktivitas broker menunjukkan distribusi (buang barang), langsung berikan rekomendasi "Avoid". Tidak ada toleransi untuk menahan posisi hanya karena sentimen "ini perusahaan bagus".
+          - Rekomendasi "Buy" valid HANYA jika memenuhi salah satu skenario teknikal berikut (WAJIB disertai data akumulasi broker):
+            1. Skenario Momentum (Breakout/Uptrend): Tren harga jangka pendek mulai naik atau menembus resistensi (Breakout).
+            2. Skenario Reversal (Buy on Support): Harga sedang menguji area support kuat dan menunjukkan tanda-tanda tertahan atau memantul (ada daya beli/akumulasi yang signifikan).
+          - Jika tidak ada momentum naik, harga berada di tengah (bukan di support/resistance), atau aktivitas broker menunjukkan distribusi (buang barang), langsung berikan rekomendasi "Avoid". Tidak ada toleransi untuk menahan posisi hanya karena sentimen "ini perusahaan bagus".
         `
         break
       case 'medium':
