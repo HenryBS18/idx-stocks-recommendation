@@ -32,9 +32,10 @@ export class SummaryService {
       case 'short':
         strategyContext = `
           KONTEKS STRATEGI: Trading Jangka Pendek / Day Trading (1 hari - 1 minggu).
-          FOKUS PENILAIAN: Keputusan harus berpusat pada Momentum Teknikal, Aktivitas Broker Harian, dan Katalis Berita Instan.
-          - Fundamental hanya relevan sebagai jaring pengaman (pastikan tidak ada risiko bangkrut mendadak).
-          - Jika teknikal sedang jelek/sideways dan broker distribusi, berikan rekomendasi "Avoid" meskipun fundamentalnya bagus (karena tidak cocok untuk fast-trade).
+          FOKUS PENILAIAN: Keputusan harus berpusat secara EKSKLUSIF pada Momentum Teknikal, Aktivitas Broker Harian, dan Katalis Berita Instan.
+          - Abaikan faktor fundamental sepenuhnya (valuasi, rasio keuangan, laporan laba/rugi, atau prospek jangka panjang sama sekali tidak relevan untuk kerangka waktu ini).
+          - Keputusan mutlak didasarkan pada pergerakan harga dan aliran dana (fund flow) saat ini. 
+          - Jika teknikal sedang jelek, tren sideways, atau aktivitas broker menunjukkan distribusi (buang barang), langsung berikan rekomendasi "Avoid". Tidak ada toleransi untuk menahan posisi hanya karena sentimen "ini perusahaan bagus".
         `
         break
       case 'medium':
@@ -42,7 +43,9 @@ export class SummaryService {
           KONTEKS STRATEGI: Swing Trading Jangka Menengah (2 minggu - 3 bulan).
           FOKUS PENILAIAN: Keputusan berpusat pada Tren Teknikal Menengah, Konsistensi Akumulasi Broker, dan Pertumbuhan Fundamental Kuartalan.
           - Pertimbangkan apakah katalis berita sektoral mendukung tren naik selama beberapa minggu ke depan.
-          - Jika struktur harga membentuk tren naik (higher high/higher low) yang divalidasi oleh akumulasi broker, ini adalah indikasi "Buy".
+          - Rekomendasi "Buy" valid jika memenuhi salah satu dari skenario teknikal berikut:
+            1. Skenario Tren Naik (Trending Up): Struktur harga membentuk pola higher high / higher low yang divalidasi oleh akumulasi broker.
+            2. Skenario Konsolidasi (Sideways Accumulation): Harga sedang bergerak sideways namun posisinya berada dekat dengan area support kuat, divalidasi oleh aktivitas broker yang menunjukkan konsistensi akumulasi (Buy on Support).
         `
         break
       case 'long':
