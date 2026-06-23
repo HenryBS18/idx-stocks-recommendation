@@ -315,7 +315,8 @@ class StockService:
 		csrf_middleware_token = os.getenv('NEOBDM_CSRF_MIDDLEWARE_TOKEN')
 
 		broksum_days = {
-			'short': 7,
+			'short': 3,
+			'week': 7,
 			'month': 30,
 			'medium': 90,
 			'long': 180,

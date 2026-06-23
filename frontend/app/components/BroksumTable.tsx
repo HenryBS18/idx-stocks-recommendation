@@ -4,7 +4,8 @@ import { BroksumTableProps, Timeframe } from '../types'
 
 export default function BroksumTable({ broksum, isLoading, activePeriod, onPeriodChange }: BroksumTableProps) {
   const period = {
-    '7 Hari Terakhir': 'short',
+    '3 Hari Terakhir': 'short',
+    '1 Minggu Terakhir': 'week',
     '1 Bulan Terakhir': 'month',
     '3 Bulan Terakhir': 'medium',
     '6 Bulan Terakhir': 'long',

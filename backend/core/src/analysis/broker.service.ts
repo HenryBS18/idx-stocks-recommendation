@@ -31,7 +31,7 @@ export class BrokerService {
 
     switch (timeframe) {
       case 'short':
-        dataPeriod = '7 hari terakhir'
+        dataPeriod = '3 hari terakhir'
         timeframeContext = 'Fokus pada momentum jangka pendek (1 hari - 1 minggu). Cari tahu apakah ada broker yang melakukan akumulasi agresif secara instan atau sedang "buang barang" (distribusi) secara masif. Ini ditujukan untuk trader harian/day trader.'
         break
       case 'medium':

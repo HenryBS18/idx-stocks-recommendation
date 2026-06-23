@@ -130,10 +130,6 @@ export default function NewView() {
     if (ticker === '') return
 
     setBroksumTimeframe(timeframe)
-  }, [ticker])
-
-  useEffect(() => {
-    if (ticker === '') return
 
     fetchBroksum(timeframe)
   }, [ticker, timeframe])
