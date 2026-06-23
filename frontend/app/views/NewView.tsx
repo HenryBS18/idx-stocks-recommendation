@@ -1,15 +1,14 @@
 "use client"
 
-import Link from 'next/link'
 import { useEffect, useState } from "react"
-import BalanceSheetTable from '../components/BalanceSheetTable'
-import BroksumTable from '../components/BroksumTable'
 import ErrorState from '../components/ErrorState'
-import FinancialTable from '../components/FinancialsTable'
 import LoadingState from '../components/LoadingState'
-import StockChart from '../components/StockChart'
 import SummaryCard from '../components/SummaryCard'
 import { AnalyzeResponse, BalanceSheet, Broksum, Financials, Status, StockList, Timeframe } from '../types'
+import BandarmologiSection from './sections/BandarmologiSection'
+import FundamentalSection from './sections/FundamentalSection'
+import NewsSection from './sections/NewsSection'
+import TechnicalSection from './sections/TechnicalSection'
 
 export default function NewView() {
   const [ticker, setTicker] = useState("")
@@ -356,108 +355,23 @@ export default function NewView() {
             </div>
 
             <div className="p-5 sm:p-6 space-y-8 divide-y divide-slate-800/60">
-
               <SummaryCard summary={data?.summary} />
 
-              <div className="pt-8">
-                <div className="flex items-center gap-2 mb-4">
-                  <h2 className='text-xl font-semibold text-white'>Analisis Teknikal</h2>
-                </div>
-
-                <div className="mb-5 rounded-xl overflow-hidden border border-slate-800">
-                  <StockChart ticker={ticker} support={data?.support} resistance={data?.resistance} />
-                </div>
-
-                <div className="flex flex-col sm:flex-row flex-wrap gap-y-4 gap-x-8 mb-5 bg-slate-800/30 p-4 rounded-xl border border-slate-800/50 w-full md:w-fit">
-                  <div>
-                    <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
-                      Tren Harga
-                    </h3>
-                    <p className={`font-semibold ${data?.trend === 'Bullish' ? 'text-emerald-400' :
-                      data?.trend === 'Bearish' ? 'text-rose-400' :
-                        data?.trend === 'Sideways' ? 'text-slate-400' : 'text-slate-200'
-                      }`}>
-                      {data?.trend || 'Tren tidak tersedia saat ini.'}
-                    </p>
-                  </div>
-
-                  <div>
-                    <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
-                      Support
-                    </h3>
-                    <div className="flex flex-wrap gap-2">
-                      {data?.support.map((s, i) => (
-                        <span key={i} className="px-2 py-1 bg-slate-950 border border-slate-700 rounded text-sm font-mono text-slate-300 shadow-sm">
-                          {s}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
-                      Resistance
-                    </h3>
-                    <div className="flex flex-wrap gap-2">
-                      {data?.resistance.map((r, i) => (
-                        <span key={i} className="px-2 py-1 bg-slate-950 border border-slate-700 rounded text-sm font-mono text-slate-300 shadow-sm">
-                          {r}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                <p className='text-slate-300 leading-relaxed text-sm md:text-base' dangerouslySetInnerHTML={{ __html: data?.technical ?? 'Analisis teknikal tidak tersedia saat ini.' }} />
-              </div>
-
-              <div className="pt-8">
-                <h2 className='text-xl font-semibold text-white mb-4'>Bandarmologi</h2>
-                <div className="mb-4">
-                  <BroksumTable broksum={broksum} isLoading={isBroksumLoading} activePeriod={broksumTimeframe} onPeriodChange={(newPeriod) => setBroksumTimeframe(newPeriod)} />
-                </div>
-                <div className="bg-sky-950/20 border-l-2 border-sky-500 p-4 rounded-r-lg mt-4">
-                  <p className='text-slate-300 leading-relaxed text-sm md:text-base' dangerouslySetInnerHTML={{ __html: data?.brokerSummary ?? 'Analisis bandarmologi tidak tersedia saat ini.' }} />
-                </div>
-              </div>
-
-              <div className="pt-8">
-                <h2 className='text-xl font-semibold text-white mb-4'>Kinerja Fundamental</h2>
-
-                <div className='grid grid-cols-1 lg:grid-cols-2 gap-8'>
-                  <div className='space-y-4'>
-                    <FinancialTable financials={financials} isLoading={isFundamentalLoading} />
-                    <p className='text-slate-300 leading-relaxed text-sm bg-slate-800/30 p-4 rounded-lg border border-slate-800/50' dangerouslySetInnerHTML={{ __html: data?.financials ?? 'Analisis pendapatan tidak tersedia saat ini.' }} />
-                  </div>
-
-                  <div className='space-y-4'>
-                    <BalanceSheetTable balanceSheet={balanceSheet} isLoading={isFundamentalLoading} />
-                    <p className='text-slate-300 leading-relaxed text-sm bg-slate-800/30 p-4 rounded-lg border border-slate-800/50' dangerouslySetInnerHTML={{ __html: data?.balanceSheet ?? 'Analisis neraca keuangan tidak tersedia saat ini.' }} />
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-8">
-                <h2 className='text-xl font-semibold text-white mb-4'>Sentimen Berita Utama</h2>
-
-                <p className='text-slate-300 leading-relaxed md:text-base mb-4' dangerouslySetInnerHTML={{ __html: data?.news.text ?? 'Analisis berita tidak tersedia saat ini.' }} />
-
-                <div className="bg-slate-950/50 p-4 rounded-lg border border-slate-800">
-                  <p className='text-slate-400 text-xs font-bold mb-2'>Tautan Sumber Berita</p>
-                  <ul className="space-y-2">
-                    {data?.news.sources.length !== 0 ? data?.news.sources.map((source, i) => (
-                      <li key={i} className="flex items-center gap-2">
-                        <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
-                        <Link className='text-sky-400 hover:text-sky-300 transition-colors text-sm truncate' href={source} target='_blank'>
-                          {source}
-                        </Link>
-                      </li>
-                    )) : (
-                      <p className='text-sm text-slate-500 italic'>Sumber tidak tersedia saat ini.</p>
-                    )}
-                  </ul>
-                </div>
-              </div>
+              {timeframe === 'short' || timeframe === 'medium' ? (
+                <>
+                  <TechnicalSection ticker={ticker} data={data} />
+                  <BandarmologiSection broksum={broksum} broksumTimeframe={broksumTimeframe} setBroksumTimeframe={setBroksumTimeframe} isBroksumLoading={isBroksumLoading} data={data} />
+                  <FundamentalSection financials={financials} balanceSheet={balanceSheet} data={data} isFundamentalLoading={isFundamentalLoading} />
+                  <NewsSection data={data} />
+                </>
+              ) : (
+                <>
+                  <FundamentalSection financials={financials} balanceSheet={balanceSheet} data={data} isFundamentalLoading={isFundamentalLoading} />
+                  <NewsSection data={data} />
+                  <TechnicalSection ticker={ticker} data={data} />
+                  <BandarmologiSection broksum={broksum} broksumTimeframe={broksumTimeframe} setBroksumTimeframe={setBroksumTimeframe} isBroksumLoading={isBroksumLoading} data={data} />
+                </>
+              )}
             </div>
           </div>
         </div>
