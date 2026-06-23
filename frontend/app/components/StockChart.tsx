@@ -1,10 +1,25 @@
 "use client"
 
-import { CandlestickSeries, ColorType, createChart, CrosshairMode, HistogramSeries, IChartApi } from "lightweight-charts"
+import { CandlestickSeries, ColorType, createChart, CrosshairMode, HistogramSeries, IChartApi, LineSeries } from "lightweight-charts"
 import { DrawingManager, Rectangle } from "lightweight-charts-drawing"
 import { useEffect, useRef, useState } from "react"
 import { OHLCVData, StockChartProps } from '../types'
 import { parsePriceRange } from '../utils/parse-price-range'
+
+const calculateSMA = (data: OHLCVData[], period: number) => {
+  const smaData = []
+  for (let i = 0; i < data.length; i++) {
+    if (i < period - 1) {
+      continue
+    }
+    let sum = 0
+    for (let j = 0; j < period; j++) {
+      sum += data[i - j].close
+    }
+    smaData.push({ time: data[i].time, value: sum / period })
+  }
+  return smaData
+}
 
 export default function StockChart({ ticker, support = [], resistance = [] }: StockChartProps) {
   const [data, setData] = useState<OHLCVData[]>([])
@@ -16,6 +31,9 @@ export default function StockChart({ ticker, support = [], resistance = [] }: St
   const volumeSeriesRef = useRef<any>(null)
   const drawingManagerRef = useRef<any>(null)
   const activeDrawingsRef = useRef<any[]>([])
+
+  const ma20SeriesRef = useRef<any>(null)
+  const ma50SeriesRef = useRef<any>(null)
 
   useEffect(() => {
     const fetchPrice = async () => {
@@ -71,12 +89,30 @@ export default function StockChart({ ticker, support = [], resistance = [] }: St
       scaleMargins: { top: 0.1, bottom: 0.3 },
     })
 
+    const ma20Series = chart.addSeries(LineSeries, {
+      color: '#2962FF',
+      lineWidth: 2,
+      crosshairMarkerVisible: false,
+      priceLineVisible: false,
+      title: 'MA20'
+    })
+
+    const ma50Series = chart.addSeries(LineSeries, {
+      color: '#9061F9',
+      lineWidth: 2,
+      crosshairMarkerVisible: false,
+      priceLineVisible: false,
+      title: 'MA50'
+    })
+
     const volumeSeries = chart.addSeries(HistogramSeries, {
       priceFormat: { type: 'volume' },
       priceScaleId: 'volume-scale',
     })
 
     candlestickSeriesRef.current = candlestickSeries
+    ma20SeriesRef.current = ma20Series
+    ma50SeriesRef.current = ma50Series
     volumeSeriesRef.current = volumeSeries
 
     const drawingManager = new DrawingManager()
@@ -109,6 +145,12 @@ export default function StockChart({ ticker, support = [], resistance = [] }: St
 
     candlestickSeriesRef.current.setData(candleData)
     volumeSeriesRef.current.setData(volumeData)
+
+    const sma20Data = calculateSMA(data, 20)
+    const sma50Data = calculateSMA(data, 50)
+
+    if (ma20SeriesRef.current) ma20SeriesRef.current.setData(sma20Data)
+    if (ma50SeriesRef.current) ma50SeriesRef.current.setData(sma50Data)
 
     requestAnimationFrame(() => {
       if (!chartRef.current) return
