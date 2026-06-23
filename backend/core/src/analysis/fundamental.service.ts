@@ -89,19 +89,22 @@ export class FundamentalService {
 
       Data berikut adalah laporan keuangan (financials) dan neraca keuangan (balance sheet) kuartalan selama 4-5 kuartal terakhir untuk saham ${ticker} yang terlampir pada file data.
 
+      Catatan Penting Data:
+      Kolom "Pendapatan Bunga" dan "Beban Bunga" khusus untuk emiten sektor perbankan. Jika data pada kolom tersebut kosong, null, atau strip (-), maka emiten bukan bank. Abaikan analisis metrik bunga untuk emiten non-bank.
+
       Nama Kolom Laporan Keuangan (Financials):
-      date, NPM, OPM, Pendapatan Total, Laba Operasional, EBITDA, Laba Bersih, Laba Sebelum Pajak, Penyisihan Pajak, Beban Operasional, Beban Bunga, Pendapatan Bunga
+      Periode, Total Pendapatan, Laba Sebelum Pajak, Pendapatan Bunga, Beban Bunga, Laba Bersih, Laba Operasional, Beban Operasional, EPS, PER, EBITDA, ROA, ROE, NPM, OPM
 
       Nama Kolom Neraca Keuangan (Balance Sheet):
-      date, EPS, PER, PBV, ROE, DER, Total Aset, Kas dan Setara Kas, Piutang Usaha, Aset Tetap Bersih, Goodwill dan Aset Takberwujud, Total Liabilitas, Total Utang Berbunga, Utang Usaha, Total Ekuitas, Saldo Laba
+      Periode, Saldo Laba, Total Aset, Total Liabilitas, Total Ekuitas, PBV, Kas dan Setara Kas, DER
 
       KONTEKS STRATEGI PENGGUNA:
       ${timeframeContext}
 
       TUGAS ANDA:
-      1. Pada properti "financials": Analisis tren per kuartal (Pendapatan, profitabilitas margin NPM/OPM, serta efisiensi beban operasional/bunga).
-      2. Pada properti "balanceSheet": Analisis tren pertumbuhan EPS, kesehatan struktur modal (DER), likuiditas jangka pendek (Kas vs Utang Berbunga), akumulasi kekayaan (Saldo Laba), dan penilaian valuasi (PER/PBV).
-      3. Jangan sebut angka mentah yang terlalu panjang — gunakan deskripsi relatif atau persentase (misal: "meningkat 15%", "margin menebal").
+      1. Pada properti "financials": Mulai dari performa Bottom-Line (pertumbuhan Laba Bersih dan ketebalan margin NPM) lalu telusuri sumbernya di Top-Line (Total Pendapatan). Analisis efisiensi biaya (Beban Operasional, serta Beban Bunga khusus bank), profitabilitas operasional (Laba Operasional, OPM, EBITDA), dan metrik efisiensi/valuasi pasar (EPS, PER, ROA, ROE). Khusus emiten bank, soroti performa Pendapatan Bunga.
+      2. Pada properti "balanceSheet": Analisis akumulasi kekayaan historis atau defisit perusahaan melalui Saldo Laba terlebih dahulu. Evaluasi proporsi Total Aset, lalu bedah kesehatan struktur modal serta risiko solvabilitasnya (Total Liabilitas vs Total Ekuitas). Analisis tingkat keamanan likuiditas dari Kas dan Setara Kas, serta tutup dengan penilaian nilai wajar harga saham berdasarkan rasio PBV dan tingkat leverage keuangan pada DER.
+      3. Jangan sebut angka mentah yang terlalu panjang — gunakan deskripsi naratif, rasio relatif, atau persentase (misal: "laba bersih melonjak 15%", "NPM menebal", "risiko utang membengkak").
       4. Sesuaikan bobot detail, penekanan analisis, dan gaya bahasa dengan KONTEKS STRATEGI PENGGUNA di atas.
     `
 
