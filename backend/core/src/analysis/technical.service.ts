@@ -58,7 +58,7 @@ export class TechnicalService {
 			- Batasi maksimal 5 level untuk masing-masing Support & Resistance, dengan jarak antar level minimal 5%. Format berupa range angka bulat tanpa desimal (Contoh: "1000 - 1050"), diurutkan dari nilai terkecil ke terbesar.
 
 			PANDUAN EDUKASI INVESTOR PEMULA:
-			- Setiap kali Anda menyebutkan istilah teknikal grafik (seperti Bullish, Bearish, Sideways, Breakout, Breakdown, Golden Cross, Death Cross, Rebound), Anda WAJIB memberikan penjelasan singkat atau analogi ringkas di dalam tanda kurung. (Contoh: "Saham berhasil breakout (menembus batas dinding harga atas)...").
+			- Setiap kali Anda menyebutkan istilah teknikal grafik (seperti Bullish, Bearish, Sideways, Breakout, Breakdown, Rebound), Anda WAJIB memberikan penjelasan singkat atau analogi ringkas di dalam tanda kurung. (Contoh: "Saham berhasil breakout (menembus batas dinding harga atas)...").
 
 			ATURAN FORMAT OUTPUT (JSON & HTML TAILWIND):
 			1. Output harus berupa JSON murni yang valid sesuai schema dengan key "trend", "support", "resistance", dan "technical". JANGAN gunakan backticks (\`\`\`json ... \`\`\`).
@@ -69,7 +69,6 @@ export class TechnicalService {
 				* Kondisi Tren Naik / Bullish / Breakout / Rebound: <span class='text-emerald-400 font-semibold'>Kata/Kalimat</span>
 				* Kondisi Tren Turun / Bearish / Breakdown / Rejection: <span class='text-rose-400 font-semibold'>Kata/Kalimat</span>
 				* Kondisi Konsolidasi / Sideways / Area S&R: <span class='text-amber-400 font-semibold'>Kata/Kalimat</span>
-				* Nama Indikator / Moving Average (misal: MA5, MA200, Golden Cross): <span class='text-sky-400 font-medium'>INDIKATOR</span>
 		`
 
 		const prompt = `
