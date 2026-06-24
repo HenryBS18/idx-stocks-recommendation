@@ -9,6 +9,7 @@ services:
       - "4000:4000"
     depends_on:
       - stock-data-api
+      - redis
   stock-data-api:
     container_name: stock-data-api
     build: ./backend/stock_data
@@ -24,6 +25,16 @@ services:
     command: "redis-server --requirepass ${REDIS_PASSWORD}"
     volumes:
       - redis-volume:/data
+  redis-insight:
+    container_name: redis-insight-idx
+    image: redis/redisinsight
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "5541:5540"
+    depends_on:
+      - redis
   app:
     container_name: app
     build: ./frontend
