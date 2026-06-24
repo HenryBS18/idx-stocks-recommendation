@@ -127,11 +127,11 @@ export class NewsService {
       config: {
         systemInstruction,
         responseJsonSchema,
-        // tools: [
-        //   {
-        //     googleSearch: {},
-        //   },
-        // ],
+        tools: [
+          {
+            googleSearch: {},
+          },
+        ],
       },
       contents: [
         {
@@ -144,30 +144,33 @@ export class NewsService {
 
     const newsAnalysisTmp = parseJson<NewsAnalysisResult>(response.text!)
 
-    // const cleanSources: string[] = (
-    //   await Promise.all(
-    //     newsAnalysisTmp.sources.map(async (url) => {
-    //       if (url) {
-    //         return await this.resolveRealUrl(url)
-    //       }
-    //       return null
-    //     })
-    //   )
-    // ).filter((url): url is string => url !== null)
+    const cleanSources: string[] = (
+      await Promise.all(
+        newsAnalysisTmp.sources.map(async (url) => {
+          if (url) {
+            return await this.resolveRealUrl(url)
+          }
+          return null
+        })
+      )
+    ).filter((url): url is string => url !== null)
 
-    const newsAnalysis = newsAnalysisTmp
+    const newsAnalysis = {
+      news: newsAnalysisTmp.news,
+      sources: cleanSources
+    }
 
     if (this.env.CACHE_ENABLED) await this.cacheManager.set(cacheKey, newsAnalysis, cacheTTL())
 
     return newsAnalysis
   }
 
-  // private async resolveRealUrl(redirectUrl: string): Promise<string> {
-  //   const response = await fetch(redirectUrl, {
-  //     method: 'HEAD',
-  //     redirect: 'manual'
-  //   })
+  private async resolveRealUrl(redirectUrl: string): Promise<string> {
+    const response = await fetch(redirectUrl, {
+      method: 'HEAD',
+      redirect: 'manual'
+    })
 
-  //   return response.headers.get('location') || redirectUrl
-  // }
+    return response.headers.get('location') || redirectUrl
+  }
 }
